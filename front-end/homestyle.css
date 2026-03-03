@@ -189,6 +189,18 @@ body{
     color: black;
 }
 
+.modal-inner-5{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+
 .closeModal{
 
     display: block;
