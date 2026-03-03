@@ -1,6 +1,8 @@
 
 const openBtn = document.getElementById("local-button");
 
+const aiOpenBtn = document.getElementById("Play-with-AI");
+
 const joinRoomBtn = document.getElementById("join-room-button");
 
 const createRoomBtn = document.getElementById("create-room-button");
@@ -16,6 +18,8 @@ const signUpBtn = document.getElementById("sign-up-button");
 
 const closeBtn = document.getElementById("closeModal");
 
+const closeAiBtn = document.getElementById("closeAiMenuModal");
+
 const closeJoinRoomBtn = document.getElementById("closeJoinRoomModal");
 
 const closeCreateRoomBtn = document.getElementById("closeCreateRoomModal");
@@ -26,9 +30,12 @@ const closeLogInBtn = document.getElementById("closeLogInModal");
 
 const closeSignUpBtn = document.getElementById("closeSignUpModal")
 
+
+
+
 const modal = document.getElementById('modal');
 
-
+const aiMenuModal = document.getElementById("ai-menu-modal");
 
 const joinRoomModal = document.getElementById("join-room-modal");
 
@@ -50,6 +57,23 @@ openBtn.addEventListener("click", () => {
 closeBtn.addEventListener("click",() => {
 
     modal.classList.remove("open");
+   
+});
+
+
+aiOpenBtn.addEventListener("click", () => {
+
+    modal.classList.remove("open");
+
+    aiMenuModal.classList.add("open");
+    
+});
+
+closeAiBtn.addEventListener("click",() => {
+
+    aiMenuModal.classList.remove("open");
+
+    modal.classList.add("open");
    
 });
 
