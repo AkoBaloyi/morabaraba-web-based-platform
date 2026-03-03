@@ -1,6 +1,8 @@
 
 const openBtn = document.getElementById("local-button");
 
+const createRoomBtn = document.getElementById("create-room-button");
+
 const onlineBtn = document.getElementById("online-button");
 
 const logInBtn = document.getElementById("log-in-button");
@@ -9,6 +11,8 @@ const signUpBtn = document.getElementById("sign-up-button");
 
 const closeBtn = document.getElementById("closeModal");
 
+const closeCreateRoomBtn = document.getElementById("closeCreateRoomModal");
+
 const closeOnlineMenuBtn = document.getElementById("closeOnlineMenuModal");
 
 const closeLogInBtn = document.getElementById("closeLogInModal");
@@ -16,6 +20,8 @@ const closeLogInBtn = document.getElementById("closeLogInModal");
 const closeSignUpBtn = document.getElementById("closeSignUpModal")
 
 const modal = document.getElementById('modal');
+
+const createRoomModal = document.getElementById("create-room-modal");
 
 const onlineMenuModal = document.getElementById('online-menu-modal');
 
@@ -31,6 +37,22 @@ openBtn.addEventListener("click", () => {
 closeBtn.addEventListener("click",() => {
 
     modal.classList.remove("open");
+   
+});
+
+createRoomBtn.addEventListener("click", () => {
+
+    onlineMenuModal.classList.remove("open");
+
+    createRoomModal.classList.add("open");
+    
+});
+
+closeCreateRoomBtn.addEventListener("click",() => {
+
+    createRoomModal.classList.remove("open");
+
+    onlineMenuModal.classList.add("open");
    
 });
 
