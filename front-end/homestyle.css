@@ -69,7 +69,13 @@ body{
 
     background-color: #8b4513;
 
+    transition: box-shadow 0.15s;
    
+}
+
+.log-in-button:hover{
+
+    box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
 .local-button{
@@ -89,6 +95,18 @@ body{
     color: black;
 
     background-color: #8b4513;
+
+    transition: padding 0.15s, font-size 0.15s, box-shadow 0.15s;
+
+}
+
+.local-button:hover{
+
+    padding: 23px;
+
+    font-size: 23px;
+
+    box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 
 }
 
@@ -112,6 +130,17 @@ body{
 
     background-color: #8b4513;
 
+    transition: padding 0.15s, font-size 0.15s, box-shadow 0.15s;
+
+}
+
+.online-button:hover{
+
+    padding: 23px;
+
+    font-size: 23px;
+
+    box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
 .modal{
@@ -220,6 +249,12 @@ body{
     display: block;
     background-color: #deb887;
     border: solid;
+    transition: background-color 0.15s;
+}
+
+.closeModal:hover{
+
+    background-color: #dea861;
 }
 
 .Play-with-firend{
@@ -232,19 +267,40 @@ body{
    background-color: #deb887;
    border: solid;
    font-weight: bold;
+   transition: background-color 0.15s, padding 0.15s, margin-top 0.15s, margin-left 0.15s, font-size 0.15s;
    
+}
+
+.Play-with-firend:hover{
+
+    background-color: #dea861;
+    padding: 23px;
+    margin-top: 27px;
+    margin-left: 92px;
+    font-size: 15px;
 }
 
 .Play-with-AI{
 
    display: block;
    margin-top: 30px;
-   margin-left: 111px;
+   margin-left: 110px;
    padding: 20px;
    border-radius: 20px;
    background-color: #deb887;
    border: solid;
    font-weight: bold;
+   transition: background-color 0.15s, padding 0.15s, margin-top 0.15s, margin-left 0.15s, font-size 0.15s;
+}
+
+.Play-with-AI:hover{
+
+    background-color: #dea861;
+    padding: 23px;
+    margin-top: 27px;
+    margin-left: 107px;
+    font-size: 15px;
+
 }
 
 .username-input{
@@ -284,15 +340,23 @@ body{
 
     display: block;
     margin-top: 30px;
-    margin-bottom: 20px;
     margin-left: 110px;
     padding: 15px;
     border-radius: 15px;
     background-color: #deb887;
     border: solid;
-    border-width: 2px;
     font-weight: bold;
+    transition: margin-top 0.15s, padding 0.15s, margin-left 0.15s, font-size 0.15s;
     
+}
+
+.inner-login-button:hover{
+
+    margin-top: 27px;
+    padding: 18px;
+    margin-left: 107px;
+    font-size: 16px;
+    background-color: #dea861;
 }
 
 .inner-signup-button{
@@ -304,45 +368,73 @@ body{
     padding: 15px;
     border-radius: 15px;
     background-color: #deb887;
-    border-width: 2px;
     border: solid;
 }
 
+
 .create-account-button{
 
-    padding: 5px;
+    margin-top: 20px;
     background-color: #deb887;
     padding: 15px;
     border: solid;
     border-radius: 15px;
-    border-width: 2px;
     font-weight: bold;
+    transition: padding 0.15s, margin-top 0.15s, font-size 0.15s;
+}
+
+.create-account-button:hover{
+
+    padding: 18px;
+    margin-top: 17px;
+    font-size: 16px;
+    background-color: #dea861;
 }
 
 .create-room-button{
 
     display: block;
     margin-top: 50px;
-    margin-bottom: 20px;
     margin-left:90px;
     padding: 20px;
     border-radius: 20px;
     background-color: #deb887;
     border: solid;
     font-weight: bold;
+    transition: margin-top 0.15s, padding 0.15s, margin-left 0.15s, font-size 0.15s;
+}
+
+.create-room-button:hover{
+
+    margin-top: 47px;
+    padding: 23px;
+    margin-left: 87px;
+    font-size: 16px;
+    background-color: #dea861;
+
 }
 
 .join-room-button{
 
     display: block;
     margin-top: 40px;
-    margin-bottom: 20px;
     margin-left: 99px;
     padding: 20px;
     border-radius: 20px;
     background-color: #deb887;
     border: solid;
     font-weight: bold;
+    transition: margin-top 0.15s, margin-left 0.15s, padding 0.15s, font-size 0.15s;
+}
+
+.join-room-button:hover{
+
+    margin-top: 37px;
+    margin-left: 96px;
+    padding: 23px;
+    font-size: 16px;
+    background-color: #dea861;
+
 }
 
 .ai-difficulty-button-1-3{
