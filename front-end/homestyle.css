@@ -1,0 +1,332 @@
+body{
+    margin: 0px; 
+
+    padding: 0px;
+
+    background-color: #deb887;
+}
+
+.morabaraba-text {
+
+  margin-top: 100px;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  font-family: Arial;
+
+  font-size: 100px
+ 
+}
+
+.local-play{
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  margin: 20px;
+  
+}
+
+.online-play{
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+  
+  margin: 20px;
+}
+
+.log-in{
+
+    margin: 20px;
+
+    display: flex;
+
+    justify-content: flex-end;
+  
+}
+
+.log-in-button{
+
+    border: none;
+
+    padding: 10px;
+
+    font-family: Arial;
+
+    font-weight: bold;
+
+    border-radius: 5px;
+
+    background-color: #8b4513;
+
+}
+
+.local-button{
+
+    border: none;
+
+    padding: 20px;
+
+    font-family: Arial;
+
+    font-weight: bold;
+
+    font-size: 20px;
+
+    border-radius: 20px;
+
+    color: white;
+
+    background-color: #8b4513;
+
+}
+
+.online-button{
+
+    border: none;
+
+    margin-top: 30px;
+
+    padding: 20px;
+
+    font-family: Arial;
+
+    font-weight: bold;
+
+    font-size: 20px;
+
+    border-radius: 20px;
+
+    color: white;
+
+    background-color: #8b4513;
+
+}
+
+.modal{
+
+    background-color: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transition: all 0.3s ease-in-out;
+    z-index: -1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.open{
+
+    opacity: 1;
+    z-index: 999;
+}
+
+.modal-inner{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+.modal-inner-1{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+.modal-inner-2{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+.modal-inner-3{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+.modal-inner-4{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+.modal-inner-5{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+.modal-inner-6{
+
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px 25px;
+    text-align: center;
+    width: 300px;
+    height: 350px;
+    color: black;
+}
+
+
+.closeModal{
+
+    display: block;
+}
+
+.Play-with-firend{
+
+   display: block;
+   margin-top: 30px;
+   margin-left: 80px;
+   padding: 20px;
+   border-radius: 20px;
+}
+
+.Play-with-AI{
+
+   display: block;
+   margin-top: 30px;
+   margin-left: 95px;
+   padding: 20px;
+   border-radius: 20px;
+}
+
+.username-input{
+
+    display: block;
+    margin-top: 20px;
+    margin-left: 50px;
+    width: 200px;
+    height: 30px;
+}
+
+.email-input{
+
+    display: block;
+    margin-top: 20px;
+    margin-left: 50px;
+    width: 200px;
+    height: 30px;
+}
+
+.password-input{
+
+    display: block;
+    margin-top: 20px;
+    margin-left: 50px;
+    width: 200px;
+    height: 30px;
+}
+
+.inner-login-button{
+
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 120px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.inner-signup-button{
+
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 120px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.create-account-button{
+
+    padding: 5px;
+}
+
+.create-room-button{
+
+    display: block;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    margin-left:90px;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.join-room-button{
+
+    display: block;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    margin-left: 99px;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.ai-difficulty-button-1-3{
+
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 99px;
+    padding: 20px;
+    border-radius: 20px;
+
+}
+
+.ai-difficulty-button-2{
+
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 90px;
+    padding: 20px;
+    border-radius: 20px;
+
+}
