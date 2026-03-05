@@ -342,3 +342,27 @@ body{
     font-weight: bold;
     margin-top: 40px;
 }
+
+.input-bar{
+
+    padding: 20px;
+}
+
+.enter-code-text{
+
+    margin-top: 50px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.join-button{
+
+    display:block;
+    padding: 15px;
+    margin-top: 20px;
+    margin-left: 115px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 15px;
+    border: none;
+}
