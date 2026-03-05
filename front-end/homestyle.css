@@ -330,3 +330,15 @@ body{
     border-radius: 20px;
 
 }
+
+.code-display-text{
+
+    font-size: 25px;
+}
+
+.room-code-text{
+
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 40px;
+}
