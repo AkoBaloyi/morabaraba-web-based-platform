@@ -331,7 +331,11 @@ function handleMouseMove(event) {
     
     const mouseY = (event.clientY - rect.top) * scaleY;
     
-    hoveredPoint = findClosestIntersection(mouseX, mouseY); //stores the closest point in the hoveredPoint variable 
+    if( Player === 1){
+
+        hoveredPoint = findClosestIntersection(mouseX, mouseY); //stores the closest point in the hoveredPoint variable
+    }
+     
 
     drawBoard();
 }
@@ -355,25 +359,25 @@ function mouseClick(){
 
         placedPoint = hoveredPoint; //Passes the co-ordinates of the hovered point to placedPoints
 
-        if(Player === 1 && !placedPoint.placed && occupiedPointsP1.length <= 12){
+        if(!placedPoint.placed && occupiedPointsP1.length <= 12){
 
             occupiedPointsP1.push(placedPoint); // Puts the point in the array for placed points
 
             player1counter.textContent = occupiedPointsP1.length; //Updates the UI for number of placed points 
 
             Player = 2;
-
-        }else if(Player === 2 && !placedPoint.placed && occupiedPointsP2.length <= 12){
-
-            occupiedPointsP2.push(placedPoint);
-
-            player2counter.textContent = occupiedPointsP2.length;
-
-            Player = 1;
         }
 
         drawBoard();
     }
+}
+
+// AI Placement code
+
+if(Player === 2 && occupiedPointsP2.length <= 12){
+
+    //Code for AI
+
 }
 
 //Reset button function
