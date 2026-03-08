@@ -271,7 +271,6 @@ function drawBoard() {
         }
         
     }
-        
     //Turn indicator
 
     if( Player === 1){
