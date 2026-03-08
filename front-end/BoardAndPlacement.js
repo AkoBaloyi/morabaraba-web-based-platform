@@ -11,13 +11,11 @@ const player1text = document.getElementById('player1text');
 
 const player2text = document.getElementById('player2text');
 
-let hoveredPoint = null;
+let hoveredPoint = null; // will contain the object of the point thats being hovered.
 
-let ishovered = false;
+let occupiedPointsP1 = []; //Stores occupied points for player 1 
 
-let occupiedPointsP1 = [];
-
-let occupiedPointsP2 = [];
+let occupiedPointsP2 = []; //Stores occupied points for player 2
 
 let Player = 1;
 
@@ -37,13 +35,14 @@ let geometry ={
 
 };
 
+//Calculates the coordinates where there is intersections
 function intersectionCal(){
 
     const points = [];
 
     for(let square of geometry.squares){ 
 
-       let corners =[  //for corners
+       let corners =[  //container for corners
             {
             x: square.start,
             y: square.start
@@ -62,7 +61,7 @@ function intersectionCal(){
             }
             ];
 
-         let midpoints= [ //for midpoints
+         let midpoints= [ //container for midpoints
             {
             x: square.start + square.size / 2,
             y: square.start
@@ -82,7 +81,7 @@ function intersectionCal(){
             }
             ];
 
-            for(let corner of corners){
+            for(let corner of corners){ // Puts the coordinates and a boolean variable inside the points array
 
                 points.push({
                 x: corner.x,
@@ -102,15 +101,15 @@ function intersectionCal(){
 
             });
             }
-            
 
     }
 
-    return points;
+    return points; 
 }
 
-geometry.intersections = intersectionCal();
+geometry.intersections = intersectionCal(); // Puts the coordinates inside the intersetions variable
 
+//Drawing board function
 
 function drawBoard() {
     
@@ -125,13 +124,11 @@ function drawBoard() {
 
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 3;
-   
-        
+           
     for(let square of geometry.squares){
 
-        ctx.strokeRect(square.start, square.start, square.size, square.size);
+        ctx.strokeRect(square.start, square.start, square.size, square.size); //Passes the starting point and base and hight
     }
-
    
    //Vertical lines
    ctx.beginPath();
@@ -176,7 +173,7 @@ function drawBoard() {
 
     // Draw all intersection points as small circles
 
-    for(let point of geometry.intersections){
+    for(let point of geometry.intersections){ 
 
         ctx.beginPath();
 
@@ -195,7 +192,7 @@ function drawBoard() {
 
     //Draws the hover circles / effect 
 
-    if (hoveredPoint ) {
+    if (hoveredPoint ) { // Only runs if hoveredPoint contains an object of co-ordinates of the hovered point. 
 
         ctx.beginPath();
 
@@ -211,12 +208,11 @@ function drawBoard() {
         
         ctx.stroke();
 
-        ishovered = true;
     }
 
     //Draws Placed Pieces by P1
 
-    for( let occupiedPoint of occupiedPointsP1){
+    for( let occupiedPoint of occupiedPointsP1){ //Draws all points in the array as tokens
 
         
         ctx.beginPath();
@@ -235,7 +231,7 @@ function drawBoard() {
         
         for(let intersection of geometry.intersections){
 
-            if( occupiedPoint.x === intersection.x && occupiedPoint.y === intersection.y){
+            if( occupiedPoint.x === intersection.x && occupiedPoint.y === intersection.y){ //Chanes the status of the point to occupied if a point is placed
 
                 intersection.placed = true;
 
@@ -275,7 +271,6 @@ function drawBoard() {
         }
         
     }
-
         
     //Turn indicator
 
@@ -302,6 +297,7 @@ function drawBoard() {
 // Find the closest intersection point to mouse coordinates
 
 function findClosestIntersection(mouseX, mouseY) {
+
     let closest = null;
 
     let minDistance = 22; // Maximum distance to snap to a point
@@ -310,14 +306,12 @@ function findClosestIntersection(mouseX, mouseY) {
     {
         const distance = Math.sqrt(
 
-            Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
+            Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2) //claculates the distance between the mouse and the point
         );
         
         if (distance < minDistance) {
             
-            minDistance = distance;
-
-            closest = point; // stores the object with the 2 co-ordinates 
+           closest = point; // stores the object with the 2 co-ordinates 
         }
     };
     
@@ -338,7 +332,7 @@ function handleMouseMove(event) {
     
     const mouseY = (event.clientY - rect.top) * scaleY;
     
-    hoveredPoint = findClosestIntersection(mouseX, mouseY);
+    hoveredPoint = findClosestIntersection(mouseX, mouseY); //stores the closest point in the hoveredPoint variable 
 
     drawBoard();
 }
@@ -348,8 +342,7 @@ function handleMouseMove(event) {
 function handleMouseLeave() {
 
     hoveredPoint = null; //When the mouse leaves the intersection we have to turn hovered point variable back to null 
-    ishovered = false;
-
+    
     drawBoard();
 }
 
@@ -361,13 +354,13 @@ function mouseClick(){
 
     if(hoveredPoint){
 
-        placedPoint = hoveredPoint;
+        placedPoint = hoveredPoint; //Passes the co-ordinates of the hovered point to placedPoints
 
         if(Player === 1 && !placedPoint.placed && occupiedPointsP1.length <= 12){
 
-            occupiedPointsP1.push(placedPoint);
+            occupiedPointsP1.push(placedPoint); // Puts the point in the array for placed points
 
-            player1counter.textContent = occupiedPointsP1.length;
+            player1counter.textContent = occupiedPointsP1.length; //Updates the UI for number of placed points 
 
             Player = 2;
 
@@ -392,12 +385,12 @@ function resetButton(){
 
     player2counter.textContent = "0";
 
-    occupiedPointsP1 = [];
+    occupiedPointsP1 = []; //makes the arrays empty  
 
     occupiedPointsP2 = [];
 
-    for(let intersection of geometry.intersections){
-
+    for(let intersection of geometry.intersections){ //changes all points statues to not occupied
+ 
         intersection.placed = false;
     }
 
