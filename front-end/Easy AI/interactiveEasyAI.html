@@ -1,52 +1,38 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Project Work</title>
-    
+    <title>Morabaraba - Easy AI</title>
     <link rel="stylesheet" href="../HumanVSHuman/style.css">
-
-    <script src="./BoardAndPlacementEasyAI.js" defer></script>
-
 </head>
-
 <body>
 
-    <div class="game-contaner">
+    <div class="game-container">
 
-        <div class="player1-text" id="player1text">
-            
-            <span>Player 1: <span id="player1counter">0</span>/12</span>
-           
+        <div class="info-bar">
+            <div class="player-info" id="player1info">Player 1 (Dark): 0 on board, 12 to place</div>
+            <div class="player-info" id="player2info">AI (Light): 0 on board, 12 to place</div>
         </div>
 
-        <canvas id="myCanvas" width="600" height="600" style="border: 2px solid black;" ></canvas>
-
-        <div class="player2-text" id="player2text">
-            
-            <span>AI Player: <span id="player2counter">0</span>/12</span>
-           
+        <div class="status-bar">
+            <span id="statusText">Player 1 (Dark)'s turn</span>
+            <br>
+            <span id="phaseText">Phase: Placement</span>
         </div>
+
+        <canvas id="myCanvas" width="600" height="600" style="border: 2px solid black;"></canvas>
 
         <div class="reset-button-container">
-
-            <button class="reset-button" onclick="resetButton()">
-
-                Reset Board
-
-            </button>
-
+            <button class="reset-button" onclick="resetGame()">Reset Board</button>
+            <a href="../HomePage/index.html"><button class="reset-button">Back to Menu</button></a>
         </div>
 
     </div>
 
-   
-    
+    <script>window.GAME_MODE = 'easy';</script>
+    <script src="../engine-bundle.js"></script>
+    <script src="../game-controller.js"></script>
+
 </body>
 </html>
