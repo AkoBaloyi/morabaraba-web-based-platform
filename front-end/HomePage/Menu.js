@@ -111,3 +111,46 @@ closeSignUpBtn.addEventListener("click", () => {
 
   logInModal.classList.add("open");
 });
+
+// login handler
+// Login Function
+const loginBtnSubmit = document.querySelector(".inner-login-button");
+
+loginBtnSubmit.addEventListener("click", async () => {
+  const username = document.querySelector(
+    "#log-in-modal .username-input",
+  ).value;
+  const password = document.querySelector(
+    "#log-in-modal .password-input",
+  ).value;
+
+  if (!username || !password) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert(data.message);
+      // save token in localStorage for future requests
+      localStorage.setItem("token", data.token);
+      document.getElementById("log-in-modal").classList.remove("open");
+      document.getElementById("online-menu-modal").classList.add("open");
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong with login.");
+  }
+});
