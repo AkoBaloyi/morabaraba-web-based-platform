@@ -68,7 +68,7 @@ app.post("/login", (req, res) => {
       // Generate JWT token
       const token = jwt.sign(
         { id: user.id, username: user.username },
-        "your_secret_key",
+        JWT_SECRET,
         { expiresIn: "1h" },
       );
       res.json({ message: "Login successful", token });
@@ -97,16 +97,59 @@ app.post("/create-room", (req, res) => {
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
+  // creating room
+  socket.on("create-room", () => {
+    const code = generateRoomCode();
+
+    db.run("INSERT INTO rooms (code) VALUES (?)", [code], function (err) {
+      if (err) {
+        console.error(err);
+        socket.emit("error", "Could not create room");
+        return;
+      }
+
+      // send room code back to the client
+      socket.emit("room-created", code);
+      console.log(`Room created: ${code}`);
+    });
+  });
+
+  //Joining Room
   socket.on("join-room", (roomCode) => {
-    socket.join(roomCode);
-    console.log(`${socket.id} joined room ${roomCode}`);
-    io.to(roomCode).emit("message", `${socket.id} joined the room`);
+    db.get("SELECT * FROM rooms WHERE code = ?", [roomCode], (err, row) => {
+      if (err) {
+        socket.emit("error", "Database error");
+        return;
+      }
+      if (!row) {
+        socket.emit("invalid-room", "Room does not exist");
+        return;
+      }
+
+      socket.join(roomCode);
+      socket.emit("joined-room", roomCode); // confirm joined
+      io.to(roomCode).emit("message", `User ${socket.id} joined the room`);
+      console.log(`${socket.id} joined room ${roomCode}`);
+    });
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected", socket.id);
   });
 });
+// io.on("connection", (socket) => {
+//   console.log("A user connected", socket.id);
+
+//   socket.on("join-room", (roomCode) => {
+//     socket.join(roomCode);
+//     console.log(`${socket.id} joined room ${roomCode}`);
+//     io.to(roomCode).emit("message", `${socket.id} joined the room`);
+//   });
+
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected", socket.id);
+//   });
+// });
 
 // Starting server
 const PORT = 3000;
