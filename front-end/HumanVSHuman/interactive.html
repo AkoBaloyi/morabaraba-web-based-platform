@@ -1,43 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Morabaraba - Human vs Human</title>
-    <link rel="stylesheet" href="./style.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="./style.css" />
+    <script src="http://localhost:3000/socket.io/socket.io.js" defer></script>
+    <script src="../OnlinePlay/online-game.js" defer></script>
+  </head>
+  <body>
     <div class="game-container">
-
-        <!-- Game info panel at the top -->
-        <div class="info-bar">
-            <div class="player-info" id="player1info">Player 1 (Dark): 0 on board, 12 to place</div>
-            <div class="player-info" id="player2info">Player 2 (Light): 0 on board, 12 to place</div>
+      <!-- Game info panel at the top -->
+      <div class="info-bar">
+        <div class="player-info" id="player1info">
+          Player 1 (Dark): 0 on board, 12 to place
         </div>
-
-        <!-- Status message - shows whose turn, what phase, capture needed, etc -->
-        <div class="status-bar">
-            <span id="statusText">Player 1 (Dark)'s turn</span>
-            <br>
-            <span id="phaseText">Phase: Placement</span>
+        <div class="player-info" id="player2info">
+          Player 2 (Light): 0 on board, 12 to place
         </div>
+      </div>
 
-        <!-- The game board canvas -->
-        <canvas id="myCanvas" width="600" height="600" style="border: 2px solid black;"></canvas>
+      <!-- Status message - shows whose turn, what phase, capture needed, etc -->
+      <div class="status-bar">
+        <span id="statusText">Player 1 (Dark)'s turn</span>
+        <br />
+        <span id="phaseText">Phase: Placement</span>
+      </div>
 
-        <div class="reset-button-container">
-            <button class="reset-button" onclick="resetGame()">Reset Board</button>
-            <a href="../HomePage/index.html"><button class="reset-button">Back to Menu</button></a>
-        </div>
+      <!-- The game board canvas -->
+      <canvas
+        id="myCanvas"
+        width="600"
+        height="600"
+        style="border: 2px solid black"
+      ></canvas>
 
+      <div class="reset-button-container">
+        <button class="reset-button" onclick="resetGame()">Reset Board</button>
+        <a href="../HomePage/index.html"
+          ><button class="reset-button">Back to Menu</button></a
+        >
+      </div>
     </div>
 
     <!-- Set game mode BEFORE loading the controller -->
-    <script>window.GAME_MODE = 'human';</script>
+    <script>
+      window.GAME_MODE = "human";
+    </script>
     <!-- Load engine first, then the controller -->
-    <script src="../engine-bundle.js"></script>
-    <script src="../game-controller.js"></script>
-
-</body>
+    <script src="../engine-bundle.js" defer></script>
+    <script src="../game-controller.js" defer></script>
+  </body>
 </html>
