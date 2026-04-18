@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  //DOM Elements
+  // DOM Elements
   const openBtn = document.getElementById("local-button");
   const aiOpenBtn = document.getElementById("Play-with-AI");
   const joinRoomBtn = document.getElementById("join-room-button");
@@ -33,10 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginBtnSubmit = document.querySelector(".inner-login-button");
   const signUpBtnSubmit = document.querySelector(".inner-signup-button");
 
-  //Socket.io
+  // SOCKET
   const socket = io("http://localhost:3000");
 
-  //Modal Logic
+  /* ---------------- MODALS ---------------- */
+
   openBtn.addEventListener("click", () => modal.classList.add("open"));
   closeBtn.addEventListener("click", () => modal.classList.remove("open"));
 
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.remove("open");
     aiMenuModal.classList.add("open");
   });
+
   closeAiBtn.addEventListener("click", () => {
     aiMenuModal.classList.remove("open");
     modal.classList.add("open");
@@ -53,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onlineMenuModal.classList.remove("open");
     joinRoomModal.classList.add("open");
   });
+
   closeJoinRoomBtn.addEventListener("click", () => {
     joinRoomModal.classList.remove("open");
     onlineMenuModal.classList.add("open");
@@ -62,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onlineMenuModal.classList.remove("open");
     createRoomModal.classList.add("open");
   });
+
   closeCreateRoomBtn.addEventListener("click", () => {
     createRoomModal.classList.remove("open");
     onlineMenuModal.classList.add("open");
@@ -70,11 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
   onlineBtn.addEventListener("click", () =>
     onlineMenuModal.classList.add("open"),
   );
+
   closeOnlineMenuBtn.addEventListener("click", () =>
     onlineMenuModal.classList.remove("open"),
   );
 
   logInBtn.addEventListener("click", () => logInModal.classList.add("open"));
+
   closeLogInBtn.addEventListener("click", () =>
     logInModal.classList.remove("open"),
   );
@@ -83,16 +89,19 @@ document.addEventListener("DOMContentLoaded", () => {
     logInModal.classList.remove("open");
     signUpModal.classList.add("open");
   });
+
   closeSignUpBtn.addEventListener("click", () => {
     signUpModal.classList.remove("open");
     logInModal.classList.add("open");
   });
 
-  //Login
+  /* ---------------- LOGIN ---------------- */
+
   loginBtnSubmit.addEventListener("click", async () => {
     const username = document.querySelector(
       "#log-in-modal .username-input",
     ).value;
+
     const password = document.querySelector(
       "#log-in-modal .password-input",
     ).value;
@@ -107,9 +116,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await response.json();
+
       if (response.ok) {
         alert(data.message);
+
         localStorage.setItem("token", data.token);
+        localStorage.setItem("username", username);
+
         logInModal.classList.remove("open");
         onlineMenuModal.classList.add("open");
       } else {
@@ -117,17 +130,20 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong with login.");
+      alert("Login failed.");
     }
   });
 
-  //SignUp
+  /* ---------------- SIGNUP ---------------- */
+
   if (signUpBtnSubmit) {
     signUpBtnSubmit.addEventListener("click", async () => {
       const username = document.querySelector(
         "#sign-up-modal .username-input",
       ).value;
+
       const email = document.querySelector("#sign-up-modal .email-input").value;
+
       const password = document.querySelector(
         "#sign-up-modal .password-input",
       ).value;
@@ -143,45 +159,68 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const data = await response.json();
+
         if (response.ok) {
-          alert("Registration successful! You can now log in.");
+          alert("Registration successful!");
+
           signUpModal.classList.remove("open");
           logInModal.classList.add("open");
         } else {
-          alert(data.message);
+          alert(data.message || data.error);
         }
       } catch (err) {
         console.error(err);
-        alert("Something went wrong with sign-up.");
+        alert("Signup failed.");
       }
     });
   }
 
-  // Room Creation
+  /* ---------------- CREATE ROOM ---------------- */
+
   createRoomBtn.addEventListener("click", () => {
-    // Ask server to create a room
     socket.emit("create-room");
   });
 
-  // Listen for room code from server
   socket.on("room-created", (code) => {
-    codeDisplay.textContent = code; // replaces "CODE DISPLAY HERE"
-
+    codeDisplay.textContent = code;
     createRoomModal.classList.add("open");
   });
 
-  // Join Room
+  /* ---------------- JOIN ROOM ---------------- */
+
   joinRoomSubmitBtn.addEventListener("click", () => {
     const roomCode = joinInput.value.toUpperCase().trim();
+
     if (!roomCode) return alert("Enter a room code");
 
-    socket.emit("join-room", roomCode);
+    socket.emit("join-room", {
+      roomCode,
+      username: localStorage.getItem("username") || "Guest", // ✅ FIX
+    });
   });
 
   socket.on("joined-room", (code) => {
-    alert(`Joined room ${code} successfully!`);
+    alert(`Joined room ${code}`);
     joinRoomModal.classList.remove("open");
   });
 
   socket.on("invalid-room", (msg) => alert(msg));
+
+  /* ---------------- START GAME () ---------------- */
+
+  socket.on("start-game", (roomCode) => {
+    // BOTH PLAYERS GO TO SAME BOARD
+    // window.location.href = `./HumanVSHuman/interactive.html?room=${roomCode}`;
+    window.location.href = `http://127.0.0.1:5500/front-end/HumanVSHuman/interactive.html?room=${roomCode}`;
+  });
+
+  /* ---------------- other EVENTS ---------------- */
+
+  socket.on("player-joined", (username) => {
+    console.log(`${username} joined the room`);
+  });
+
+  socket.on("player-left", () => {
+    alert("Opponent left the room");
+  });
 });
