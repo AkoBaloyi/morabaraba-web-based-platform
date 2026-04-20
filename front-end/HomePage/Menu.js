@@ -1,42 +1,178 @@
+// document.addEventListener("DOMContentLoaded", () => {
+//   console.log("Menu loaded");
+
+//   // DOM Elements
+//   const onlineBtn = document.getElementById("online-button");
+//   const onlineMenuModal = document.getElementById("online-menu-modal");
+//   const createRoomBtn = document.getElementById("create-room-button");
+//   const joinRoomBtn = document.getElementById("join-room-button");
+//   const joinRoomModal = document.getElementById("join-room-modal");
+//   const joinSubmitBtn = document.querySelector("#join-room-modal .join-button");
+//   const joinInput = document.querySelector("#join-room-modal .input-bar");
+//   const createRoomModal = document.getElementById("create-room-modal");
+//   const codeDisplay = document.querySelector(".code-display-text");
+//   const closeCreateBtn = document.getElementById("closeCreateRoomModal");
+//   const closeJoinBtn = document.getElementById("closeJoinRoomModal");
+//   const closeOnlineBtn = document.getElementById("closeOnlineMenuModal");
+
+//   let socket = null;
+//   let currentRoomCode = null;
+//   let playerUsername = null;
+
+//   // Get or create username
+//   playerUsername =
+//     localStorage.getItem("username") ||
+//     "Player_" + Math.floor(Math.random() * 1000);
+//   localStorage.setItem("username", playerUsername);
+
+//   function connectSocket() {
+//     socket = io("http://localhost:3000", {
+//       transports: ["websocket", "polling"],
+//     });
+
+//     socket.on("connect", () => {
+//       console.log("Connected to server");
+//       showNotification("Connected to game server!", "#4CAF50");
+//     });
+
+//     socket.on("connect_error", (error) => {
+//       console.error("Connection error:", error);
+//       showNotification("Failed to connect to server!", "#f44336");
+//     });
+
+//     socket.on("room-created", (code) => {
+//       console.log("Room created:", code);
+//       currentRoomCode = code;
+//       if (codeDisplay) codeDisplay.textContent = code;
+//       createRoomModal.classList.add("open");
+//     });
+
+//     socket.on("join-success", (code) => {
+//       console.log("Joined room:", code);
+//       currentRoomCode = code;
+//       showNotification("Joined room! Waiting for opponent...", "#4CAF50");
+//       joinRoomModal.classList.remove("open");
+//     });
+
+//     socket.on("player-joined", (username) => {
+//       console.log("Player joined:", username);
+//       showNotification(`${username} joined! Starting game...`, "#4CAF50");
+//     });
+
+//     socket.on("game-start", (data) => {
+//       console.log("Game starting:", data);
+//       // Store room info in sessionStorage before redirect
+//       sessionStorage.setItem("gameRoomCode", data.roomCode || data);
+//       sessionStorage.setItem("playerUsername", playerUsername);
+
+//       // Small delay to ensure server knows game is starting
+//       setTimeout(() => {
+//         window.location.href = `http://127.0.0.1:5500/front-end/OnlinePlay/online-play.html?room=${data.roomCode || data}`;
+//       }, 1000);
+//     });
+
+//     socket.on("error", (message) => {
+//       alert(message);
+//     });
+//   }
+
+//   function showNotification(message, color) {
+//     const notif = document.createElement("div");
+//     notif.textContent = message;
+//     notif.style.position = "fixed";
+//     notif.style.bottom = "20px";
+//     notif.style.right = "20px";
+//     notif.style.backgroundColor = color;
+//     notif.style.color = "white";
+//     notif.style.padding = "10px";
+//     notif.style.borderRadius = "5px";
+//     notif.style.zIndex = "9999";
+//     document.body.appendChild(notif);
+//     setTimeout(() => notif.remove(), 3000);
+//   }
+
+//   // Connect immediately
+//   connectSocket();
+
+//   // Event Listeners
+//   onlineBtn.addEventListener("click", () => {
+//     if (!socket || !socket.connected) {
+//       alert("Connecting to server...");
+//       return;
+//     }
+//     onlineMenuModal.classList.add("open");
+//   });
+
+//   createRoomBtn.addEventListener("click", () => {
+//     if (!socket || !socket.connected) {
+//       alert("Not connected to server");
+//       return;
+//     }
+//     socket.emit("create-room", { username: playerUsername });
+//     onlineMenuModal.classList.remove("open");
+//   });
+
+//   joinRoomBtn.addEventListener("click", () => {
+//     onlineMenuModal.classList.remove("open");
+//     joinRoomModal.classList.add("open");
+//   });
+
+//   joinSubmitBtn.addEventListener("click", () => {
+//     const roomCode = joinInput.value.toUpperCase().trim();
+//     if (!roomCode) {
+//       alert("Enter a room code");
+//       return;
+//     }
+//     if (!socket || !socket.connected) {
+//       alert("Not connected to server");
+//       return;
+//     }
+//     socket.emit("join-room", { roomCode, username: playerUsername });
+//   });
+
+//   // Close buttons
+//   if (closeCreateBtn)
+//     closeCreateBtn.onclick = () => createRoomModal.classList.remove("open");
+//   if (closeJoinBtn)
+//     closeJoinBtn.onclick = () => joinRoomModal.classList.remove("open");
+//   if (closeOnlineBtn)
+//     closeOnlineBtn.onclick = () => onlineMenuModal.classList.remove("open");
+// });
+
+//Working above
 document.addEventListener("DOMContentLoaded", () => {
-  // DOM Elements
+  console.log("Menu loaded");
+
+  // DOM Elements for game menu
   const openBtn = document.getElementById("local-button");
   const aiOpenBtn = document.getElementById("Play-with-AI");
-  const joinRoomBtn = document.getElementById("join-room-button");
-  const createRoomBtn = document.getElementById("create-room-button");
   const onlineBtn = document.getElementById("online-button");
-  const logInBtn = document.getElementById("log-in-button");
-  const signUpBtn = document.getElementById("sign-up-button");
-
+  const onlineMenuModal = document.getElementById("online-menu-modal");
+  const createRoomBtn = document.getElementById("create-room-button");
+  const joinRoomBtn = document.getElementById("join-room-button");
+  const joinRoomModal = document.getElementById("join-room-modal");
+  const joinSubmitBtn = document.querySelector("#join-room-modal .join-button");
+  const joinInput = document.querySelector("#join-room-modal .input-bar");
+  const createRoomModal = document.getElementById("create-room-modal");
+  const codeDisplay = document.querySelector(".code-display-text");
+  const closeCreateBtn = document.getElementById("closeCreateRoomModal");
+  const closeJoinBtn = document.getElementById("closeJoinRoomModal");
+  const closeOnlineBtn = document.getElementById("closeOnlineMenuModal");
   const closeBtn = document.getElementById("closeModal");
   const closeAiBtn = document.getElementById("closeAiMenuModal");
-  const closeJoinRoomBtn = document.getElementById("closeJoinRoomModal");
-  const closeCreateRoomBtn = document.getElementById("closeCreateRoomModal");
-  const closeOnlineMenuBtn = document.getElementById("closeOnlineMenuModal");
-  const closeLogInBtn = document.getElementById("closeLogInModal");
-  const closeSignUpBtn = document.getElementById("closeSignUpModal");
 
   const modal = document.getElementById("modal");
   const aiMenuModal = document.getElementById("ai-menu-modal");
-  const joinRoomModal = document.getElementById("join-room-modal");
-  const createRoomModal = document.getElementById("create-room-modal");
-  const onlineMenuModal = document.getElementById("online-menu-modal");
+
+  // DOM Elements for Auth Modals
+  const logInBtn = document.getElementById("log-in-button");
+  const signUpBtn = document.getElementById("sign-up-button");
   const logInModal = document.getElementById("log-in-modal");
   const signUpModal = document.getElementById("sign-up-modal");
-
-  const codeDisplay = document.querySelector(".code-display-text");
-  const joinInput = document.querySelector("#join-room-modal .input-bar");
-  const joinRoomSubmitBtn = document.querySelector(
-    "#join-room-modal .join-button",
-  );
-
-  const loginBtnSubmit = document.querySelector(".inner-login-button");
-  const signUpBtnSubmit = document.querySelector(".inner-signup-button");
-
-  // SOCKET
-  const socket = io("http://localhost:3000");
-
-  /* ---------------- MODALS ---------------- */
+  const closeLogInBtn = document.getElementById("closeLogInModal");
+  const closeSignUpBtn = document.getElementById("closeSignUpModal");
+  const loginSubmitBtn = document.querySelector(".inner-login-button");
+  const signUpSubmitBtn = document.querySelector(".inner-signup-button");
 
   openBtn.addEventListener("click", () => modal.classList.add("open"));
   closeBtn.addEventListener("click", () => modal.classList.remove("open"));
@@ -51,63 +187,86 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("open");
   });
 
-  joinRoomBtn.addEventListener("click", () => {
-    onlineMenuModal.classList.remove("open");
-    joinRoomModal.classList.add("open");
-  });
+  let socket = null;
+  let currentRoomCode = null;
+  let playerUsername = null;
+  let authToken = null;
 
-  closeJoinRoomBtn.addEventListener("click", () => {
-    joinRoomModal.classList.remove("open");
-    onlineMenuModal.classList.add("open");
-  });
+  // Check if user is logged in
+  function isLoggedIn() {
+    return authToken !== null && playerUsername !== null;
+  }
 
-  createRoomBtn.addEventListener("click", () => {
-    onlineMenuModal.classList.remove("open");
-    createRoomModal.classList.add("open");
-  });
+  // Show notification helper
+  function showNotification(message, color) {
+    const notif = document.createElement("div");
+    notif.textContent = message;
+    notif.style.position = "fixed";
+    notif.style.bottom = "20px";
+    notif.style.right = "20px";
+    notif.style.backgroundColor = color;
+    notif.style.color = "white";
+    notif.style.padding = "10px";
+    notif.style.borderRadius = "5px";
+    notif.style.zIndex = "9999";
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+  }
 
-  closeCreateRoomBtn.addEventListener("click", () => {
-    createRoomModal.classList.remove("open");
-    onlineMenuModal.classList.add("open");
-  });
+  // Connect to game server (no auth required for gameplay)
+  function connectSocket() {
+    socket = io("http://localhost:3000", {
+      transports: ["websocket", "polling"],
+    });
 
-  onlineBtn.addEventListener("click", () =>
-    onlineMenuModal.classList.add("open"),
-  );
+    socket.on("connect", () => {
+      console.log("Connected to game server");
+      showNotification("Connected to game server!", "#4CAF50");
+    });
 
-  closeOnlineMenuBtn.addEventListener("click", () =>
-    onlineMenuModal.classList.remove("open"),
-  );
+    socket.on("connect_error", (error) => {
+      console.error("Connection error:", error);
+      showNotification("Failed to connect to server!", "#f44336");
+    });
 
-  logInBtn.addEventListener("click", () => logInModal.classList.add("open"));
+    socket.on("room-created", (code) => {
+      console.log("Room created:", code);
+      currentRoomCode = code;
+      if (codeDisplay) codeDisplay.textContent = code;
+      createRoomModal.classList.add("open");
+    });
 
-  closeLogInBtn.addEventListener("click", () =>
-    logInModal.classList.remove("open"),
-  );
+    socket.on("join-success", (code) => {
+      console.log("Joined room:", code);
+      currentRoomCode = code;
+      showNotification("Joined room! Waiting for opponent...", "#4CAF50");
+      joinRoomModal.classList.remove("open");
+    });
 
-  signUpBtn.addEventListener("click", () => {
-    logInModal.classList.remove("open");
-    signUpModal.classList.add("open");
-  });
+    socket.on("player-joined", (username) => {
+      console.log("Player joined:", username);
+      showNotification(`${username} joined! Starting game...`, "#4CAF50");
+    });
 
-  closeSignUpBtn.addEventListener("click", () => {
-    signUpModal.classList.remove("open");
-    logInModal.classList.add("open");
-  });
+    socket.on("game-start", (data) => {
+      console.log("Game starting:", data);
+      sessionStorage.setItem("gameRoomCode", data.roomCode || data);
+      sessionStorage.setItem("playerUsername", playerUsername);
 
-  /* ---------------- LOGIN ---------------- */
+      setTimeout(() => {
+        window.location.href = `http://127.0.0.1:5500/front-end/OnlinePlay/online-play.html?room=${data.roomCode || data}`;
+      }, 1000);
+    });
 
-  loginBtnSubmit.addEventListener("click", async () => {
-    const username = document.querySelector(
-      "#log-in-modal .username-input",
-    ).value;
+    socket.on("error", (message) => {
+      alert(message);
+    });
+  }
 
-    const password = document.querySelector(
-      "#log-in-modal .password-input",
-    ).value;
-
-    if (!username || !password) return alert("Please fill in all fields");
-
+  // ============================================
+  // LOGIN FUNCTION
+  // ============================================
+  async function login(username, password) {
     try {
       const response = await fetch("http://localhost:3000/login", {
         method: "POST",
@@ -118,109 +277,210 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message);
-
-        localStorage.setItem("token", data.token);
+        authToken = data.token;
+        playerUsername = username;
+        localStorage.setItem("token", authToken);
         localStorage.setItem("username", username);
-
+        showNotification("Login successful!", "#4CAF50");
         logInModal.classList.remove("open");
-        onlineMenuModal.classList.add("open");
+        return true;
       } else {
-        alert(data.message);
+        alert(data.message || "Login failed");
+        return false;
       }
     } catch (err) {
-      console.error(err);
-      alert("Login failed.");
+      console.error("Login error:", err);
+      alert("Login failed. Please try again.");
+      return false;
     }
-  });
+  }
 
-  /* ---------------- SIGNUP ---------------- */
+  // ============================================
+  // SIGNUP FUNCTION
+  // ============================================
+  async function signup(username, email, password) {
+    try {
+      const response = await fetch("http://localhost:3000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-  if (signUpBtnSubmit) {
-    signUpBtnSubmit.addEventListener("click", async () => {
-      const username = document.querySelector(
-        "#sign-up-modal .username-input",
-      ).value;
+      const data = await response.json();
 
-      const email = document.querySelector("#sign-up-modal .email-input").value;
-
-      const password = document.querySelector(
-        "#sign-up-modal .password-input",
-      ).value;
-
-      if (!username || !email || !password)
-        return alert("Please fill in all fields");
-
-      try {
-        const response = await fetch("http://localhost:3000/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, email, password }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          alert("Registration successful!");
-
-          signUpModal.classList.remove("open");
-          logInModal.classList.add("open");
-        } else {
-          alert(data.message || data.error);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Signup failed.");
+      if (response.ok) {
+        alert("Registration successful! Please login.");
+        signUpModal.classList.remove("open");
+        logInModal.classList.add("open");
+        return true;
+      } else {
+        alert(data.error || "Registration failed");
+        return false;
       }
+    } catch (err) {
+      console.error("Signup error:", err);
+      alert("Signup failed. Please try again.");
+      return false;
+    }
+  }
+
+  // ============================================
+  // Check for existing session on page load
+  // ============================================
+  function checkExistingSession() {
+    const savedToken = localStorage.getItem("token");
+    const savedUsername = localStorage.getItem("username");
+
+    if (savedToken && savedUsername) {
+      authToken = savedToken;
+      playerUsername = savedUsername;
+      console.log("Restored session for:", playerUsername);
+      showNotification(`Welcome back, ${playerUsername}!`, "#4CAF50");
+    } else {
+      // Guest mode
+      playerUsername = "Guest_" + Math.floor(Math.random() * 1000);
+      localStorage.setItem("username", playerUsername);
+      console.log("Guest mode:", playerUsername);
+    }
+  }
+
+  // ============================================
+  // AUTH MODAL HANDLERS
+  // ============================================
+
+  // Open login modal
+  if (logInBtn) {
+    logInBtn.addEventListener("click", () => {
+      logInModal.classList.add("open");
     });
   }
 
-  /* ---------------- CREATE ROOM ---------------- */
+  // Close login modal
+  if (closeLogInBtn) {
+    closeLogInBtn.addEventListener("click", () => {
+      logInModal.classList.remove("open");
+    });
+  }
+
+  // Open signup modal (from login modal)
+  if (signUpBtn) {
+    signUpBtn.addEventListener("click", () => {
+      logInModal.classList.remove("open");
+      signUpModal.classList.add("open");
+    });
+  }
+
+  // Close signup modal
+  if (closeSignUpBtn) {
+    closeSignUpBtn.addEventListener("click", () => {
+      signUpModal.classList.remove("open");
+    });
+  }
+
+  // Login form submission
+  if (loginSubmitBtn) {
+    loginSubmitBtn.addEventListener("click", async () => {
+      const username = document.querySelector(
+        "#log-in-modal .username-input",
+      )?.value;
+      const password = document.querySelector(
+        "#log-in-modal .password-input",
+      )?.value;
+
+      if (!username || !password) {
+        alert("Please fill in all fields");
+        return;
+      }
+
+      await login(username, password);
+    });
+  }
+
+  // Signup form submission
+  if (signUpSubmitBtn) {
+    signUpSubmitBtn.addEventListener("click", async () => {
+      const username = document.querySelector(
+        "#sign-up-modal .username-input",
+      )?.value;
+      const email = document.querySelector(
+        "#sign-up-modal .email-input",
+      )?.value;
+      const password = document.querySelector(
+        "#sign-up-modal .password-input",
+      )?.value;
+
+      if (!username || !email || !password) {
+        alert("Please fill in all fields");
+        return;
+      }
+
+      await signup(username, email, password);
+    });
+  }
+
+  // ============================================
+  // GAME MENU HANDLERS (Unchanged)
+  // ============================================
+
+  // Connect to game server
+  connectSocket();
+
+  // Online button - now checks if logged in but doesn't force it
+  onlineBtn.addEventListener("click", () => {
+    if (!socket || !socket.connected) {
+      alert("Connecting to server...");
+      return;
+    }
+
+    // Optional: Show username in menu if logged in
+    if (isLoggedIn()) {
+      console.log(`Playing as: ${playerUsername}`);
+    } else {
+      console.log(`Playing as guest: ${playerUsername}`);
+    }
+
+    onlineMenuModal.classList.add("open");
+  });
 
   createRoomBtn.addEventListener("click", () => {
-    socket.emit("create-room");
+    if (!socket || !socket.connected) {
+      alert("Not connected to server");
+      return;
+    }
+    socket.emit("create-room", { username: playerUsername });
+    onlineMenuModal.classList.remove("open");
   });
 
-  socket.on("room-created", (code) => {
-    codeDisplay.textContent = code;
-    createRoomModal.classList.add("open");
+  joinRoomBtn.addEventListener("click", () => {
+    onlineMenuModal.classList.remove("open");
+    joinRoomModal.classList.add("open");
   });
 
-  /* ---------------- JOIN ROOM ---------------- */
-
-  joinRoomSubmitBtn.addEventListener("click", () => {
+  joinSubmitBtn.addEventListener("click", () => {
     const roomCode = joinInput.value.toUpperCase().trim();
-
-    if (!roomCode) return alert("Enter a room code");
-
-    socket.emit("join-room", {
-      roomCode,
-      username: localStorage.getItem("username") || "Guest", // ✅ FIX
-    });
+    if (!roomCode) {
+      alert("Enter a room code");
+      return;
+    }
+    if (!socket || !socket.connected) {
+      alert("Not connected to server");
+      return;
+    }
+    socket.emit("join-room", { roomCode, username: playerUsername });
   });
 
-  socket.on("joined-room", (code) => {
-    alert(`Joined room ${code}`);
-    joinRoomModal.classList.remove("open");
-  });
+  // Close buttons for modals
+  if (closeCreateBtn) {
+    closeCreateBtn.onclick = () => createRoomModal.classList.remove("open");
+  }
+  if (closeJoinBtn) {
+    closeJoinBtn.onclick = () => joinRoomModal.classList.remove("open");
+  }
+  if (closeOnlineBtn) {
+    closeOnlineBtn.onclick = () => onlineMenuModal.classList.remove("open");
+  }
 
-  socket.on("invalid-room", (msg) => alert(msg));
-
-  /* ---------------- START GAME () ---------------- */
-
-  socket.on("start-game", (roomCode) => {
-    // BOTH PLAYERS GO TO SAME BOARD
-    // window.location.href = `./HumanVSHuman/interactive.html?room=${roomCode}`;
-    window.location.href = `http://127.0.0.1:5500/front-end/HumanVSHuman/interactive.html?room=${roomCode}`;
-  });
-
-  /* ---------------- other EVENTS ---------------- */
-
-  socket.on("player-joined", (username) => {
-    console.log(`${username} joined the room`);
-  });
-
-  socket.on("player-left", () => {
-    alert("Opponent left the room");
-  });
+  // Initialize
+  checkExistingSession();
+  console.log("Menu ready - Login/Signup available, gameplay optional");
 });

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morabaraba - Online Multiplayer</title>
+    <link rel="stylesheet" href="../HumanVSHuman/style.css" />
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  </head>
+  <body>
+    <div class="game-container">
+      <div class="info-bar">
+        <div class="player-info" id="player1info">
+          <span id="player1text">Player 1 (Dark)</span>:
+          <span id="player1counter">0</span> on board,
+          <span id="player1ToPlace">12</span> to place
+        </div>
+        <div class="player-info" id="player2info">
+          <span id="player2text">Player 2 (Light)</span>:
+          <span id="player2counter">0</span> on board,
+          <span id="player2ToPlace">12</span> to place
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <span id="statusText">Connecting to game...</span>
+      </div>
+
+      <canvas
+        id="myCanvas"
+        width="600"
+        height="600"
+        style="border: 2px solid black; cursor: pointer"
+      ></canvas>
+
+      <div class="reset-button-container">
+        <button class="reset-button" onclick="resetGame()">Reset Board</button>
+        <a href="../HomePage/index.html"
+          ><button class="reset-button">Back to Menu</button></a
+        >
+      </div>
+    </div>
+
+    <!-- load the online board script  -->
+    <script src="./online-board.js"></script>
+  </body>
+</html>

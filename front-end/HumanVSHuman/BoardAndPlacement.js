@@ -1,3 +1,9 @@
+const isHost =
+  new URLSearchParams(window.location.search).get("role") === "host";
+
+// Player identity
+const myPlayer = isHost ? 1 : 2;
+
 const canvas = document.getElementById("myCanvas");
 
 const ctx = canvas.getContext("2d");
@@ -319,34 +325,58 @@ function handleMouseLeave() {
   drawBoard();
 }
 
-//Fuction that handles placements if pieces
+//Fuction that handles placements of pieces
 
 function mouseClick() {
   let placedPoint;
 
   if (hoveredPoint) {
-    placedPoint = hoveredPoint; //Passes the co-ordinates of the hovered point to placedPoints
+    placedPoint = hoveredPoint;
+
+    // BLOCK remote updates triggering clicks
+    if (isApplyingRemoteMove) return;
 
     if (Player === 1 && !placedPoint.placed && occupiedPointsP1.length <= 12) {
-      occupiedPointsP1.push(placedPoint); // Puts the point in the array for placed points
+      occupiedPointsP1.push({
+        x: placedPoint.x,
+        y: placedPoint.y,
+        placed: true,
+      });
 
-      player1counter.textContent = occupiedPointsP1.length; //Updates the UI for number of placed points
+      player1counter.textContent = occupiedPointsP1.length;
+
+      // send move
+      if (window.sendMoveToServer) {
+        window.sendMoveToServer({
+          x: placedPoint.x,
+          y: placedPoint.y,
+          player: 1,
+        });
+      }
 
       Player = 2;
-      //sending moves to the server
-      if (window.sendMoveToServer) window.sendMoveToServer();
     } else if (
       Player === 2 &&
       !placedPoint.placed &&
       occupiedPointsP2.length <= 12
     ) {
-      occupiedPointsP2.push(placedPoint);
+      occupiedPointsP2.push({
+        x: placedPoint.x,
+        y: placedPoint.y,
+        placed: true,
+      });
 
       player2counter.textContent = occupiedPointsP2.length;
 
+      if (window.sendMoveToServer) {
+        window.sendMoveToServer({
+          x: placedPoint.x,
+          y: placedPoint.y,
+          player: 2,
+        });
+      }
+
       Player = 1;
-      //sending move to the server
-      if (window.sendMoveToServer) window.sendMoveToServer();
     }
 
     drawBoard();
