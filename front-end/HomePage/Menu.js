@@ -1,145 +1,3 @@
-// document.addEventListener("DOMContentLoaded", () => {
-//   console.log("Menu loaded");
-
-//   // DOM Elements
-//   const onlineBtn = document.getElementById("online-button");
-//   const onlineMenuModal = document.getElementById("online-menu-modal");
-//   const createRoomBtn = document.getElementById("create-room-button");
-//   const joinRoomBtn = document.getElementById("join-room-button");
-//   const joinRoomModal = document.getElementById("join-room-modal");
-//   const joinSubmitBtn = document.querySelector("#join-room-modal .join-button");
-//   const joinInput = document.querySelector("#join-room-modal .input-bar");
-//   const createRoomModal = document.getElementById("create-room-modal");
-//   const codeDisplay = document.querySelector(".code-display-text");
-//   const closeCreateBtn = document.getElementById("closeCreateRoomModal");
-//   const closeJoinBtn = document.getElementById("closeJoinRoomModal");
-//   const closeOnlineBtn = document.getElementById("closeOnlineMenuModal");
-
-//   let socket = null;
-//   let currentRoomCode = null;
-//   let playerUsername = null;
-
-//   // Get or create username
-//   playerUsername =
-//     localStorage.getItem("username") ||
-//     "Player_" + Math.floor(Math.random() * 1000);
-//   localStorage.setItem("username", playerUsername);
-
-//   function connectSocket() {
-//     socket = io("http://localhost:3000", {
-//       transports: ["websocket", "polling"],
-//     });
-
-//     socket.on("connect", () => {
-//       console.log("Connected to server");
-//       showNotification("Connected to game server!", "#4CAF50");
-//     });
-
-//     socket.on("connect_error", (error) => {
-//       console.error("Connection error:", error);
-//       showNotification("Failed to connect to server!", "#f44336");
-//     });
-
-//     socket.on("room-created", (code) => {
-//       console.log("Room created:", code);
-//       currentRoomCode = code;
-//       if (codeDisplay) codeDisplay.textContent = code;
-//       createRoomModal.classList.add("open");
-//     });
-
-//     socket.on("join-success", (code) => {
-//       console.log("Joined room:", code);
-//       currentRoomCode = code;
-//       showNotification("Joined room! Waiting for opponent...", "#4CAF50");
-//       joinRoomModal.classList.remove("open");
-//     });
-
-//     socket.on("player-joined", (username) => {
-//       console.log("Player joined:", username);
-//       showNotification(`${username} joined! Starting game...`, "#4CAF50");
-//     });
-
-//     socket.on("game-start", (data) => {
-//       console.log("Game starting:", data);
-//       // Store room info in sessionStorage before redirect
-//       sessionStorage.setItem("gameRoomCode", data.roomCode || data);
-//       sessionStorage.setItem("playerUsername", playerUsername);
-
-//       // Small delay to ensure server knows game is starting
-//       setTimeout(() => {
-//         window.location.href = `http://127.0.0.1:5500/front-end/OnlinePlay/online-play.html?room=${data.roomCode || data}`;
-//       }, 1000);
-//     });
-
-//     socket.on("error", (message) => {
-//       alert(message);
-//     });
-//   }
-
-//   function showNotification(message, color) {
-//     const notif = document.createElement("div");
-//     notif.textContent = message;
-//     notif.style.position = "fixed";
-//     notif.style.bottom = "20px";
-//     notif.style.right = "20px";
-//     notif.style.backgroundColor = color;
-//     notif.style.color = "white";
-//     notif.style.padding = "10px";
-//     notif.style.borderRadius = "5px";
-//     notif.style.zIndex = "9999";
-//     document.body.appendChild(notif);
-//     setTimeout(() => notif.remove(), 3000);
-//   }
-
-//   // Connect immediately
-//   connectSocket();
-
-//   // Event Listeners
-//   onlineBtn.addEventListener("click", () => {
-//     if (!socket || !socket.connected) {
-//       alert("Connecting to server...");
-//       return;
-//     }
-//     onlineMenuModal.classList.add("open");
-//   });
-
-//   createRoomBtn.addEventListener("click", () => {
-//     if (!socket || !socket.connected) {
-//       alert("Not connected to server");
-//       return;
-//     }
-//     socket.emit("create-room", { username: playerUsername });
-//     onlineMenuModal.classList.remove("open");
-//   });
-
-//   joinRoomBtn.addEventListener("click", () => {
-//     onlineMenuModal.classList.remove("open");
-//     joinRoomModal.classList.add("open");
-//   });
-
-//   joinSubmitBtn.addEventListener("click", () => {
-//     const roomCode = joinInput.value.toUpperCase().trim();
-//     if (!roomCode) {
-//       alert("Enter a room code");
-//       return;
-//     }
-//     if (!socket || !socket.connected) {
-//       alert("Not connected to server");
-//       return;
-//     }
-//     socket.emit("join-room", { roomCode, username: playerUsername });
-//   });
-
-//   // Close buttons
-//   if (closeCreateBtn)
-//     closeCreateBtn.onclick = () => createRoomModal.classList.remove("open");
-//   if (closeJoinBtn)
-//     closeJoinBtn.onclick = () => joinRoomModal.classList.remove("open");
-//   if (closeOnlineBtn)
-//     closeOnlineBtn.onclick = () => onlineMenuModal.classList.remove("open");
-// });
-
-//Working above
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Menu loaded");
 
@@ -419,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================
-  // GAME MENU HANDLERS (Unchanged)
+  // GAME MENU HANDLERS
   // ============================================
 
   // Connect to game server
@@ -432,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Optional: Show username in menu if logged in
+    //Show username in menu if logged in
     if (isLoggedIn()) {
       console.log(`Playing as: ${playerUsername}`);
     } else {
