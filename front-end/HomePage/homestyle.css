@@ -30,6 +30,8 @@ header{
     border: 5px solid black;
 
     border-radius: 100px;
+
+    margin-bottom: 50px;
   
 }
 
@@ -55,6 +57,51 @@ a {
 
   align-items: center;
   
+}
+
+.tut-section{
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+}
+
+.tut-title{
+    margin-left: 40%;
+
+    margin-bottom: 20px;
+}
+
+.sub-headings{
+    margin-left: 10px;
+
+    font-size: 20px;
+
+    margin-bottom: 10px;
+}
+
+.text{
+
+    margin-left: 15px;
+
+    font-size: 20px;
+}
+
+.tut-boarder{
+
+    background-color: #dba55e;
+
+    width: 800px;
+
+    height: auto;
+
+    border: 5px solid black;
+
+    border-radius: 100px;
 }
 
 .morabaraba-text {
