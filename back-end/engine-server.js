@@ -52,14 +52,18 @@ const STANDARD_MILLS = [
 const BOARD_SIZE = 24;
 
 function createGame(variantName = "12-cow") {
+  // need to include phase, mills, variant to match the client engine state shape
   return {
     nodes: Array(BOARD_SIZE).fill(null),
     currentPlayer: "white",
+    phase: { white: "placement", black: "placement" },
     cowsToPlace: { white: 12, black: 12 },
     cowsCaptured: { white: 0, black: 0 },
     capturePending: 0,
+    mills: [],
     winner: null,
     winReason: null,
+    variant: variantName,
   };
 }
 
@@ -125,17 +129,30 @@ function getLegalCaptures(state) {
   return notInMill.length > 0 ? notInMill : opponentNodes;
 }
 
-function detectNewMills(state, movedNode) {
-  const player = state.nodes[movedNode];
+// compares mills before and after a move to find only the NEW ones
+function detectNewMills(oldState, newState, movedNode) {
+  const player = newState.nodes[movedNode];
   if (!player) return [];
+
+  // get mills that existed before the move
+  const oldMillKeys = {};
+  for (const mill of STANDARD_MILLS) {
+    const p = oldState.nodes[mill[0]];
+    if (p && oldState.nodes[mill[1]] === p && oldState.nodes[mill[2]] === p) {
+      oldMillKeys[mill.join("-")] = true;
+    }
+  }
+
+  // find mills at the moved node that didnt exist before
   const newMills = [];
   for (const mill of STANDARD_MILLS) {
-    if (mill.includes(movedNode)) {
-      if (
-        state.nodes[mill[0]] === player &&
-        state.nodes[mill[1]] === player &&
-        state.nodes[mill[2]] === player
-      ) {
+    if (!mill.includes(movedNode)) continue;
+    if (
+      newState.nodes[mill[0]] === player &&
+      newState.nodes[mill[1]] === player &&
+      newState.nodes[mill[2]] === player
+    ) {
+      if (!oldMillKeys[mill.join("-")]) {
         newMills.push(mill);
       }
     }
@@ -147,6 +164,75 @@ function copyState(state) {
   return JSON.parse(JSON.stringify(state));
 }
 
+// checks if someone won - either opponent has < 3 cows or cant move
+function checkWinCondition(state) {
+  if (state.winner) return { winner: state.winner, reason: state.winReason };
+  const cp = state.currentPlayer;
+  const opp = getOpponent(cp);
+
+  // check if current player has less than 3 cows (after both done placing)
+  if (state.cowsToPlace[cp] === 0 && state.cowsToPlace[opp] === 0) {
+    if (countCowsOnBoard(state, cp) < 3) {
+      return { winner: opp, reason: "opponent_below_three" };
+    }
+  }
+
+  // check if current player is stuck with no moves
+  if (state.capturePending === 0) {
+    const moves = getLegalMoves(state);
+    if (moves.length === 0) {
+      return { winner: opp, reason: "opponent_no_moves" };
+    }
+  }
+  return null;
+}
+
+// gets all legal moves for the current player
+function getLegalMoves(state) {
+  if (state.winner) return [];
+  const cp = state.currentPlayer;
+
+  if (state.capturePending > 0) {
+    return getLegalCaptures(state).map((t) => ({
+      type: "capture", player: cp, target: t,
+    }));
+  }
+
+  const phase = getPhase(state, cp);
+
+  if (phase === "placement") {
+    const moves = [];
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      if (state.nodes[i] === null) moves.push({ type: "placement", player: cp, node: i });
+    }
+    return moves;
+  }
+
+  if (phase === "movement") {
+    const moves = [];
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      if (state.nodes[i] !== cp) continue;
+      for (const adj of getAdjacent(i)) {
+        if (state.nodes[adj] === null) moves.push({ type: "slide", player: cp, from: i, to: adj });
+      }
+    }
+    return moves;
+  }
+
+  if (phase === "flying") {
+    const moves = [];
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      if (state.nodes[i] !== cp) continue;
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        if (state.nodes[j] === null) moves.push({ type: "slide", player: cp, from: i, to: j });
+      }
+    }
+    return moves;
+  }
+
+  return [];
+}
+
 function applyPlacement(state, nodeId) {
   const cp = state.currentPlayer;
   if (state.winner) return { error: true, message: "Game is over" };
@@ -154,6 +240,8 @@ function applyPlacement(state, nodeId) {
     return { error: true, message: "Must capture first" };
   if (getPhase(state, cp) !== "placement")
     return { error: true, message: "Not in placement phase" };
+  if (nodeId < 0 || nodeId > 23)
+    return { error: true, message: "Invalid node" };
   if (state.nodes[nodeId] !== null)
     return { error: true, message: "Position occupied" };
 
@@ -161,11 +249,20 @@ function applyPlacement(state, nodeId) {
   ns.nodes[nodeId] = cp;
   ns.cowsToPlace[cp]--;
 
-  const newMills = detectNewMills(ns, nodeId);
+  // update phase if done placing
+  if (ns.cowsToPlace[cp] === 0) {
+    ns.phase[cp] = countCowsOnBoard(ns, cp) <= 3 ? "flying" : "movement";
+  }
+
+  const newMills = detectNewMills(state, ns, nodeId);
+  ns.mills = getMills(ns);
+
   if (newMills.length > 0) {
     ns.capturePending += newMills.length;
   } else {
     ns.currentPlayer = getOpponent(cp);
+    const win = checkWinCondition(ns);
+    if (win) { ns.winner = win.winner; ns.winReason = win.reason; }
   }
   return ns;
 }
@@ -190,11 +287,15 @@ function applySlide(state, from, to) {
   ns.nodes[from] = null;
   ns.nodes[to] = cp;
 
-  const newMills = detectNewMills(ns, to);
+  const newMills = detectNewMills(state, ns, to);
+  ns.mills = getMills(ns);
+
   if (newMills.length > 0) {
     ns.capturePending += newMills.length;
   } else {
     ns.currentPlayer = getOpponent(cp);
+    const win = checkWinCondition(ns);
+    if (win) { ns.winner = win.winner; ns.winReason = win.reason; }
   }
   return ns;
 }
@@ -216,16 +317,28 @@ function applyCapture(state, targetNode) {
   ns.nodes[targetNode] = null;
   ns.capturePending--;
   ns.cowsCaptured[cp]++;
+  ns.mills = getMills(ns);
 
   const oppOnBoard = countCowsOnBoard(ns, opp);
-  if (oppOnBoard < 3) {
+  const oppToPlace = ns.cowsToPlace[opp];
+
+  // check if opponent drops to flying
+  if (oppToPlace === 0 && oppOnBoard === 3) {
+    ns.phase[opp] = "flying";
+  }
+
+  // opponent eliminated
+  if (oppToPlace === 0 && oppOnBoard < 3) {
     ns.winner = cp;
     ns.winReason = "opponent_below_three";
     return ns;
   }
 
+  // if done capturing, switch turns and check if opponent can move
   if (ns.capturePending === 0) {
     ns.currentPlayer = opp;
+    const win = checkWinCondition(ns);
+    if (win) { ns.winner = win.winner; ns.winReason = win.reason; }
   }
   return ns;
 }
@@ -248,6 +361,8 @@ module.exports = {
   getOpponent,
   countCowsOnBoard,
   getLegalCaptures,
+  getLegalMoves,
+  checkWinCondition,
   getAdjacent,
   getMills,
   isInMill,

@@ -446,6 +446,87 @@ socket.on("move-confirmed", (data) => {
   console.log("Move confirmed by server");
 });
 
+// this is the important one - server sends us the real game state after every move
+// we rebuild our local board from it so everything stays in sync
+socket.on("game-controller-state", (data) => {
+  console.log("Got game state from server");
+
+  if (!data || !data.gameState) return;
+
+  const gs = data.gameState;
+
+  // rebuild piece arrays from the engine's nodes array
+  // node positions map: index -> pixel coords (same order as geometry.intersections)
+  const nodePositions = [
+    {x:100,y:100},{x:300,y:100},{x:500,y:100},
+    {x:175,y:175},{x:300,y:175},{x:425,y:175},
+    {x:250,y:250},{x:300,y:250},{x:350,y:250},
+    {x:100,y:300},{x:175,y:300},{x:250,y:300},
+    {x:350,y:300},{x:425,y:300},{x:500,y:300},
+    {x:250,y:350},{x:300,y:350},{x:350,y:350},
+    {x:175,y:425},{x:300,y:425},{x:425,y:425},
+    {x:100,y:500},{x:300,y:500},{x:500,y:500}
+  ];
+
+  occupiedPointsP1 = [];
+  occupiedPointsP2 = [];
+
+  // reset all intersections
+  for (let inter of geometry.intersections) {
+    inter.placed = false;
+  }
+
+  // place pieces based on engine state
+  for (let i = 0; i < 24; i++) {
+    if (gs.nodes[i] === "white") {
+      const pos = nodePositions[i];
+      occupiedPointsP1.push({ x: pos.x, y: pos.y, placed: true });
+      // mark intersection as placed
+      for (let inter of geometry.intersections) {
+        if (inter.x === pos.x && inter.y === pos.y) { inter.placed = true; break; }
+      }
+    } else if (gs.nodes[i] === "black") {
+      const pos = nodePositions[i];
+      occupiedPointsP2.push({ x: pos.x, y: pos.y, placed: true });
+      for (let inter of geometry.intersections) {
+        if (inter.x === pos.x && inter.y === pos.y) { inter.placed = true; break; }
+      }
+    }
+  }
+
+  // figure out whose turn it is in player numbers
+  // white = player 1, black = player 2
+  currentPlayer = gs.currentPlayer === "white" ? 1 : 2;
+
+  // update status from server
+  if (data.statusMessage) {
+    updateStatus(data.statusMessage, data.statusColor);
+  }
+
+  // check if its my turn
+  if (currentPlayer === myPlayerNumber && !gs.winner) {
+    if (data.capturePending > 0) {
+      updateStatus("Your turn - capture an opponent's cow!", "#ff6666");
+    } else {
+      updateStatus("Your turn!", "#4CAF50");
+    }
+  } else if (!gs.winner) {
+    updateStatus("Waiting for opponent...", "#ff9800");
+  }
+
+  if (gs.winner) {
+    const winnerNum = gs.winner === "white" ? 1 : 2;
+    if (winnerNum === myPlayerNumber) {
+      updateStatus("You win!", "#ffcc00");
+    } else {
+      updateStatus("You lost!", "#ff6666");
+    }
+  }
+
+  updateCounters();
+  drawBoard();
+});
+
 socket.on("opponent-disconnected", (data) => {
   console.log("Opponent disconnected");
   updateStatus(data.message, "#f44336");

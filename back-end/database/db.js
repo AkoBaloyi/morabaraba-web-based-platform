@@ -59,4 +59,9 @@ db.serialize(() => {
   `);
 });
 
-module.exports = db;
+// exporting both ways so it works with getDB() and direct require
+function getDB() {
+  return db;
+}
+
+module.exports = { getDB, db };
