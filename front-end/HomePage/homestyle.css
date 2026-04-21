@@ -11,6 +11,28 @@ header{
     width: 95%;
 }
 
+.boarder{
+
+    background-color: #dba55e;
+
+    width: 800px;
+
+    height: 550px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    border: 5px solid black;
+
+    border-radius: 100px;
+  
+}
+
 a {
     text-decoration: none;
     color: inherit;
@@ -37,7 +59,7 @@ a {
 
 .morabaraba-text {
   
-  margin-top: 60px;
+  margin-top: 0;
   
   font-family: Arial;
 
