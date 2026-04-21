@@ -10,7 +10,10 @@ header{
 
     width: 95%;
 }
-
+a {
+    text-decoration: none;
+    color: inherit;
+}
 .main-container{
 
   display: flex;
