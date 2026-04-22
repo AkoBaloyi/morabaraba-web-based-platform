@@ -220,6 +220,56 @@ function drawBoard() {
     ctx.stroke();
   }
 
+  // show valid moves as small white dots so the player knows where they can go
+  if (!gameState.winner) {
+    var cp = gameState.currentPlayer;
+    // only show hints when its not AI's turn (or in human mode)
+    var showHints = (gameMode === 'human') || (cp === 'white');
+
+    if (showHints && gameState.capturePending === 0) {
+      var phase = Engine.getPhase(gameState, cp);
+
+      if (phase === 'placement') {
+        // highlight all empty nodes
+        for (var i = 0; i < Engine.BOARD_SIZE; i++) {
+          if (gameState.nodes[i] === null) {
+            var p = NODE_POSITIONS[i];
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.fill();
+          }
+        }
+      } else if ((phase === 'movement' || phase === 'flying') && selectedNode !== null) {
+        // highlight where the selected cow can move to
+        var adj = Engine.getAdjacent(selectedNode);
+        if (phase === 'flying') {
+          // can go anywhere empty
+          for (var i = 0; i < Engine.BOARD_SIZE; i++) {
+            if (gameState.nodes[i] === null) {
+              var p = NODE_POSITIONS[i];
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+              ctx.fill();
+            }
+          }
+        } else {
+          // movement - only adjacent empty spots
+          for (var a = 0; a < adj.length; a++) {
+            if (gameState.nodes[adj[a]] === null) {
+              var p = NODE_POSITIONS[adj[a]];
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+              ctx.fill();
+            }
+          }
+        }
+      }
+    }
+  }
+
   // if capture is pending, highlight capturable opponent cows in red
   if (gameState.capturePending > 0) {
     var targets = Engine.getLegalCaptures(gameState);

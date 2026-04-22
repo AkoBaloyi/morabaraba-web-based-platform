@@ -312,10 +312,7 @@
     for (var i = 0; i < BOARD_SIZE; i++) {
       if (state.nodes[i] === opponent) opCows.push(i);
     }
-    var notInMill = opCows.filter(function (n) {
-      return !isInMill(state, n);
-    });
-    return notInMill.length > 0 ? notInMill : opCows;
+    return opCows;
   }
 
   function getLegalMoves(state) {

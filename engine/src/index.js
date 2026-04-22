@@ -1,5 +1,20 @@
-function add(a, b) {
-  return a + b;
-}
+// re-export everything from the actual engine modules
+// so tests can just require from here
 
-module.exports = { add };
+const state = require('../../src/engine/state');
+const moves = require('../../src/engine/moves');
+const apply = require('../../src/engine/apply');
+const mills = require('../../src/engine/mills');
+const win = require('../../src/engine/win');
+const ai = require('../../src/engine/ai');
+const constants = require('../../src/engine/constants');
+
+module.exports = {
+  ...state,
+  ...moves,
+  ...apply,
+  ...mills,
+  ...win,
+  ...ai,
+  ...constants
+};
