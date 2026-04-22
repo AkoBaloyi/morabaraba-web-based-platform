@@ -14,9 +14,15 @@ db.serialize(() => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             email TEXT UNIQUE,
-            password TEXT
+            password TEXT,
+            elo INTEGER DEFAULT 1200
         )
     `);
+
+  // add elo column if the table already exists without it
+  db.run(`ALTER TABLE users ADD COLUMN elo INTEGER DEFAULT 1200`, function(err) {
+    // ignore error - just means column already exists
+  });
 
   // Rooms table
   db.run(`
