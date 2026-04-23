@@ -2,17 +2,31 @@
     margin: 0px;
 
     padding: 0px;
+
+    box-sizing: border-box;
 }
 
 body{
     margin: 0px; 
 
-    
+    height: 100vh;
 
     background-color: #deb887;
+
+    display: grid;
+    grid-template-rows: 90px 1fr; /*creates 3 row*/
+    grid-template-columns: 240px 1fr; /*creares 2 columbs*/
+
+    
+    grid-template-areas: 
+            "header header" /*Defines areas*/
+            "sidebar main";
+    
 }
 
 .header-section{
+
+    grid-area: header;
 
     color: rgb(191, 191, 191);
 
@@ -28,10 +42,32 @@ body{
 
     align-items: center;
 
+    background-color: black;
+    
+}
+
+.side-bar{
+
+    grid-area: sidebar;
+    
     background-color: rgb(38, 38, 38);
+    
+    border: 2px solid black;
 
-    border-bottom: 2px solid black;
+    overflow-y: auto;
 
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+} 
+
+.main-content{
+
+    grid-area: main;
+
+    overflow-y: auto;
 }
 
 .player-name{
