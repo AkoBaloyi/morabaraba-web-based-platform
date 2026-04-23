@@ -1,14 +1,83 @@
+*{
+    margin: 0px;
+
+    padding: 0px;
+}
+
 body{
     margin: 0px; 
 
-    padding: 0px;
+    
 
     background-color: #deb887;
 }
 
-header{
+.header-section{
 
-    width: 95%;
+    color: rgb(191, 191, 191);
+
+    width: 100%;
+
+    height: 80px;
+
+   margin-bottom: 20px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    background-color: rgb(38, 38, 38);
+
+    border-bottom: 2px solid black;
+
+}
+
+.player-name{
+
+    
+
+    font-size: 20px;
+
+    font-weight: bold;
+}
+
+.elo{
+
+    color: rgb(78, 75, 75);
+
+    font-size: 20px;
+
+    font-weight: bold;
+}
+
+.player-container{
+
+    display: flex;
+
+    margin-left: 20px;
+    
+    gap: 5px;
+
+    height: auto;
+
+    width: auto;
+
+    justify-content: center;
+
+    align-items: center;
+}
+
+.player-icon{
+
+    background-color: rgb(180, 179, 179);
+   
+    height: 30px;
+
+    width: 30px;
+
+    
 }
 
 .boarder{
@@ -114,19 +183,13 @@ a {
  
 }
 
-.log-in{
-
-    margin: 20px;
-
-    display: flex;
-
-    justify-content: flex-end;
-  
-}
-
 .log-in-button{
 
     border: solid;
+
+    height: 50%;
+
+    margin-right: 20px;
 
     padding: 10px;
 
