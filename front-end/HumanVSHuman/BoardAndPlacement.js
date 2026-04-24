@@ -114,7 +114,7 @@ function drawBoard() {
   // Draw background
 
   ctx.fillStyle = "#deb887";
-  //
+
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Draw the three concentric squares
@@ -214,12 +214,10 @@ function drawBoard() {
     ctx.arc(occupiedPoint.x, occupiedPoint.y, 15, 0, 2 * Math.PI);
 
     ctx.fillStyle = "black";
-    //#F5B042
 
     ctx.fill();
 
     ctx.strokeStyle = "white";
-    //#2DD4BF
 
     ctx.lineWidth = 2;
 
