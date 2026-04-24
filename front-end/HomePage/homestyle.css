@@ -11,7 +11,7 @@ body{
 
     height: 100vh;
 
-    background-color: rgb(191, 191, 191);
+    background-color: #1E2A3A;
 
     display: grid;
     grid-template-rows: 90px 1fr; /*creates 3 row*/
@@ -52,7 +52,7 @@ body{
 
     grid-area: sidebar;
     
-    background-color: rgb(38, 38, 38);
+    background-color: #121826;
 
     color: rgb(191, 191, 191);
 
@@ -354,7 +354,7 @@ a {
 
 .modal-inner{
 
-    background-color: rgb(92, 91, 91);;
+    background-color: #3d5898;
 
     border-radius: 15px;
 
