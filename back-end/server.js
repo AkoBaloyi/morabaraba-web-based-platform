@@ -1,25 +1,47 @@
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Server } = require("socket.io");
 const http = require("http");
+
+// load .env BEFORE anything that reads process.env
+require("dotenv").config();
+
 const Engine = require("./engine-server");
+const authRoutes = require("./routes/authRoutes");
+const { JWT_SECRET } = require("./controllers/authController");
+const { updateEloAfterGame } = require("./controllers/eloController");
+const { getDB } = require("./database/db");
 
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5500";
+const PORT = process.env.PORT || 3000;
+
+// allow both localhost and 127.0.0.1 since browsers treat them differently
+const allowedOrigins = [CORS_ORIGIN, "http://localhost:5500", "http://127.0.0.1:5500"];
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  }
+}));
 app.use(express.json());
+
+// use the proper auth routes that actually check the database
+app.use(authRoutes);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://127.0.0.1:5500",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
 
-const JWT_SECRET = "supersecretkey";
 const rooms = new Map();
 
 const NODE_POSITIONS = [
@@ -109,30 +131,33 @@ function getGameControllerState(gameState) {
   };
 }
 
-app.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-  const token = jwt.sign({ id: Date.now(), username }, JWT_SECRET);
-  res.json({ token, username, email });
-});
-
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-  const token = jwt.sign({ id: Date.now(), username }, JWT_SECRET);
-  res.json({ message: "Login successful", token });
-});
-
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
+// socket auth middleware - tries to verify token if provided
+// guests can still connect but wont have a verified username
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      socket.user = decoded; // { id, username }
+      console.log(`Authenticated socket: ${decoded.username}`);
+    } catch (err) {
+      // bad token - let them connect as guest but log it
+      console.log("Socket had invalid token, connecting as guest");
+      socket.user = null;
+    }
+  } else {
+    socket.user = null;
+  }
+  next();
+});
+
 io.on("connection", (socket) => {
-  console.log(`\nClient connected: ${socket.id}`);
+  const authInfo = socket.user ? socket.user.username : "guest";
+  console.log(`\nClient connected: ${socket.id} (${authInfo})`);
 
   let currentRoom = null;
   let playerName = null;
@@ -361,10 +386,17 @@ io.on("connection", (socket) => {
           (room.gameState.winner === "white" && p.playerNumber === 1) ||
           (room.gameState.winner === "black" && p.playerNumber === 2),
       );
+      const loserPlayer = room.players.find(p => p !== winnerPlayer);
       console.log(`  GAME OVER - Winner: ${winnerPlayer?.username}`);
-      io.to(roomCode).emit("game-over", {
-        winner: winnerPlayer?.username,
-        reason: room.gameState.winReason,
+
+      // update elo ratings for logged-in players
+      const db = getDB();
+      updateEloAfterGame(db, winnerPlayer?.username, loserPlayer?.username, function(eloResult) {
+        io.to(roomCode).emit("game-over", {
+          winner: winnerPlayer?.username,
+          reason: room.gameState.winReason,
+          elo: eloResult // null if guests, otherwise has the rating changes
+        });
       });
     }
   });
@@ -431,8 +463,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log("\n====================================");
-  console.log("SERVER RUNNING ON PORT 3000");
+  console.log(`SERVER RUNNING ON PORT ${PORT}`);
   console.log("====================================");
 });

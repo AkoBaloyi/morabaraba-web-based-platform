@@ -13,7 +13,7 @@ const playerUsername =
 
 if (!roomCode) {
   alert("No room code found! Returning to menu.");
-  window.location.href = "http://127.0.0.1:5500/front-end/index.html";
+  window.location.href = "../HomePage/index.html";
 }
 
 console.log("=========================================");
@@ -27,11 +27,17 @@ console.log("=========================================");
 // ==========================================
 const socket = io("http://localhost:3000", {
   transports: ["websocket", "polling"],
+  auth: { token: localStorage.getItem("token") || null },
 });
 
 let myPlayerNumber = null; // 1 = Black, 2 = White
 let gameReady = false;
-let isRemoteMove = false;
+
+// these get updated by the server's game-controller-state event
+let serverGameState = null;  // the full engine state from the server
+let captureTargets = [];     // node IDs we can capture (highlighted red)
+let capturePending = 0;      // how many captures we need to do
+let selectedNode = null;     // for movement phase - which cow we picked up
 
 // ==========================================
 // BOARD SETUP
@@ -47,6 +53,32 @@ const statusText = document.getElementById("statusText");
 
 let hoveredPoint = null;
 let occupiedPointsP1 = []; // Black pieces
+
+// node positions - maps engine node IDs (0-23) to pixel coords on the canvas
+// same mapping as game-controller.js
+const NODE_POSITIONS = [
+  {x:100,y:100},{x:300,y:100},{x:500,y:100},
+  {x:175,y:175},{x:300,y:175},{x:425,y:175},
+  {x:250,y:250},{x:300,y:250},{x:350,y:250},
+  {x:100,y:300},{x:175,y:300},{x:250,y:300},
+  {x:350,y:300},{x:425,y:300},{x:500,y:300},
+  {x:250,y:350},{x:300,y:350},{x:350,y:350},
+  {x:175,y:425},{x:300,y:425},{x:425,y:425},
+  {x:100,y:500},{x:300,y:500},{x:500,y:500}
+];
+
+// find which node ID a click is closest to (returns -1 if too far)
+function findClosestNodeId(mouseX, mouseY) {
+  let closest = -1;
+  let minDist = 25;
+  for (let i = 0; i < NODE_POSITIONS.length; i++) {
+    const dx = mouseX - NODE_POSITIONS[i].x;
+    const dy = mouseY - NODE_POSITIONS[i].y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < minDist) { minDist = dist; closest = i; }
+  }
+  return closest;
+}
 let occupiedPointsP2 = []; // White pieces
 let currentPlayer = 1; // 1 = Black, 2 = White
 let phase = "placement"; // placement, movement, capture
@@ -89,18 +121,23 @@ function intersectionCal() {
 
 geometry.intersections = intersectionCal();
 
-// Update UI counters
+// Update UI counters from server state
 function updateCounters() {
-  const p1Count = occupiedPointsP1.length;
-  const p2Count = occupiedPointsP2.length;
-  player1counter.textContent = p1Count;
-  player2counter.textContent = p2Count;
-
-  const p1ToPlace = Math.max(0, 12 - p1Count);
-  const p2ToPlace = Math.max(0, 12 - p2Count);
-
-  document.getElementById("player1ToPlace").textContent = p1ToPlace;
-  document.getElementById("player2ToPlace").textContent = p2ToPlace;
+  if (serverGameState) {
+    // use the real numbers from the engine
+    const wOnBoard = serverGameState.nodes.filter(n => n === "white").length;
+    const bOnBoard = serverGameState.nodes.filter(n => n === "black").length;
+    player1counter.textContent = wOnBoard;
+    player2counter.textContent = bOnBoard;
+    document.getElementById("player1ToPlace").textContent = serverGameState.cowsToPlace.white;
+    document.getElementById("player2ToPlace").textContent = serverGameState.cowsToPlace.black;
+  } else {
+    // fallback before first state arrives
+    player1counter.textContent = occupiedPointsP1.length;
+    player2counter.textContent = occupiedPointsP2.length;
+    document.getElementById("player1ToPlace").textContent = Math.max(0, 12 - occupiedPointsP1.length);
+    document.getElementById("player2ToPlace").textContent = Math.max(0, 12 - occupiedPointsP2.length);
+  }
 }
 
 // Draw board
@@ -156,7 +193,7 @@ function drawBoard() {
   }
 
   // Hover effect
-  if (hoveredPoint && !hoveredPoint.placed) {
+  if (hoveredPoint) {
     ctx.beginPath();
     ctx.arc(hoveredPoint.x, hoveredPoint.y, 15, 0, 2 * Math.PI);
     ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
@@ -211,6 +248,84 @@ function drawBoard() {
     player1text.style.borderColor = "gray";
     player1text.style.boxShadow = "0 0 10px gray";
   }
+
+  // show valid moves as small white dots
+  if (serverGameState && !serverGameState.winner && myPlayerNumber) {
+    var myColor = myPlayerNumber === 1 ? "white" : "black";
+    var isMyTurn = serverGameState.currentPlayer === myColor;
+
+    if (isMyTurn && capturePending === 0) {
+      var cowsLeft = serverGameState.cowsToPlace[myColor];
+      var onBoard = serverGameState.nodes.filter(function(n) { return n === myColor; }).length;
+      var myPhase = cowsLeft > 0 ? "placement" : (onBoard > 3 ? "movement" : "flying");
+
+      if (myPhase === "placement") {
+        for (var i = 0; i < 24; i++) {
+          if (serverGameState.nodes[i] === null) {
+            var p = NODE_POSITIONS[i];
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+            ctx.fill();
+          }
+        }
+      } else if (selectedNode !== null) {
+        if (myPhase === "flying") {
+          for (var i = 0; i < 24; i++) {
+            if (serverGameState.nodes[i] === null) {
+              var p = NODE_POSITIONS[i];
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+              ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+              ctx.fill();
+            }
+          }
+        } else {
+          // movement - show adjacent empty spots for the selected cow
+          // use the adjacency map from the engine constants
+          var adjMap = {
+            0:[1,3,9],1:[0,2,4],2:[1,5,14],3:[0,4,6,10],4:[1,3,5,7],5:[2,4,8,13],
+            6:[3,7,11],7:[4,6,8],8:[5,7,12],9:[0,10,21],10:[3,9,11,18],11:[6,10,15],
+            12:[8,13,17],13:[5,12,14,20],14:[2,13,23],15:[11,16,18],16:[15,17,19],
+            17:[12,16,20],18:[10,15,19,21],19:[16,18,20,22],20:[13,17,19,23],
+            21:[9,18,22],22:[19,21,23],23:[14,20,22]
+          };
+          var neighbors = adjMap[selectedNode] || [];
+          for (var a = 0; a < neighbors.length; a++) {
+            if (serverGameState.nodes[neighbors[a]] === null) {
+              var p = NODE_POSITIONS[neighbors[a]];
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+              ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+              ctx.fill();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // highlight capture targets in red so the player knows what to click
+  if (captureTargets && captureTargets.length > 0) {
+    for (const nodeId of captureTargets) {
+      const pos = NODE_POSITIONS[nodeId];
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 18, 0, 2 * Math.PI);
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
+
+  // highlight selected cow in green (for movement phase)
+  if (selectedNode !== null) {
+    const pos = NODE_POSITIONS[selectedNode];
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 18, 0, 2 * Math.PI);
+    ctx.strokeStyle = "#00ff00";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
 }
 
 // Find closest intersection
@@ -245,79 +360,94 @@ function handleMouseLeave() {
   drawBoard();
 }
 
-// Place piece
-function placePiece() {
-  if (!hoveredPoint) {
-    console.log("No hover point");
+// handles all clicks - placement, capture, and movement
+function placePiece(event) {
+  if (!gameReady) return;
+  if (!serverGameState) return;
+  if (serverGameState.winner) return;
+
+  // check if its our turn
+  const myEnginePlayer = myPlayerNumber === 1 ? "white" : "black";
+  if (serverGameState.currentPlayer !== myEnginePlayer) {
+    updateStatus("Not your turn!", "#f44336");
     return;
   }
 
-  if (isRemoteMove) {
-    console.log("Remote move in progress");
+  // figure out which node was clicked
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mouseX = (event.clientX - rect.left) * scaleX;
+  const mouseY = (event.clientY - rect.top) * scaleY;
+  const nodeId = findClosestNodeId(mouseX, mouseY);
+
+  if (nodeId === -1) return;
+
+  // CAPTURE - if we need to capture, clicking an opponent cow sends a capture move
+  if (capturePending > 0) {
+    if (captureTargets.includes(nodeId)) {
+      console.log("Sending capture of node " + nodeId);
+      socket.emit("game-move", {
+        roomCode: roomCode,
+        move: { capture: nodeId },
+      });
+    } else {
+      updateStatus("Click a red-highlighted cow to capture!", "#ff6666");
+    }
     return;
   }
 
-  if (!gameReady) {
-    updateStatus("Game not ready yet!", "#ff9800");
+  // figure out what phase we're in
+  const cowsToPlace = serverGameState.cowsToPlace[myEnginePlayer];
+  const piecesOnBoard = serverGameState.nodes.filter(n => n === myEnginePlayer).length;
+  const phase = cowsToPlace > 0 ? "placement" : (piecesOnBoard > 3 ? "movement" : "flying");
+
+  // PLACEMENT - click an empty spot
+  if (phase === "placement") {
+    if (serverGameState.nodes[nodeId] !== null) {
+      updateStatus("That spot is taken!", "#ff9800");
+      return;
+    }
+    console.log("Sending placement at node " + nodeId);
+    socket.emit("game-move", {
+      roomCode: roomCode,
+      move: { x: NODE_POSITIONS[nodeId].x, y: NODE_POSITIONS[nodeId].y },
+    });
     return;
   }
 
-  // Check if it's this player's turn
-  if (currentPlayer !== myPlayerNumber) {
-    updateStatus(
-      `Not your turn! (Player ${currentPlayer} is playing)`,
-      "#f44336",
-    );
+  // MOVEMENT / FLYING - two clicks: pick a cow, then pick where to move it
+  if (phase === "movement" || phase === "flying") {
+    if (selectedNode === null) {
+      // first click - select one of our cows
+      if (serverGameState.nodes[nodeId] === myEnginePlayer) {
+        selectedNode = nodeId;
+        drawBoard();
+        updateStatus("Now click where to move it", "#4CAF50");
+      }
+    } else {
+      // second click - try to move there
+      if (nodeId === selectedNode) {
+        // clicked same cow again, deselect
+        selectedNode = null;
+        drawBoard();
+        return;
+      }
+      if (serverGameState.nodes[nodeId] === myEnginePlayer) {
+        // clicked a different own cow, switch selection
+        selectedNode = nodeId;
+        drawBoard();
+        return;
+      }
+      console.log("Sending slide from " + selectedNode + " to " + nodeId);
+      socket.emit("game-move", {
+        roomCode: roomCode,
+        move: { from: selectedNode, to: nodeId },
+      });
+      selectedNode = null;
+    }
     return;
   }
-
-  const point = hoveredPoint;
-
-  // Check if point is already occupied
-  if (point.placed) {
-    updateStatus("Position already occupied!", "#ff9800");
-    return;
-  }
-
-  // Check piece limit
-  const myPieces =
-    myPlayerNumber === 1 ? occupiedPointsP1.length : occupiedPointsP2.length;
-  if (myPieces >= 12) {
-    updateStatus("You have placed all 12 pieces!", "#ff9800");
-    return;
-  }
-
-  console.log(
-    `Placing piece for Player ${myPlayerNumber} at (${point.x}, ${point.y})`,
-  );
-
-  // Place piece locally
-  if (myPlayerNumber === 1) {
-    occupiedPointsP1.push({ x: point.x, y: point.y, placed: true });
-    point.placed = true;
-    player1counter.textContent = occupiedPointsP1.length;
-    currentPlayer = 2;
-  } else {
-    occupiedPointsP2.push({ x: point.x, y: point.y, placed: true });
-    point.placed = true;
-    player2counter.textContent = occupiedPointsP2.length;
-    currentPlayer = 1;
-  }
-
-  updateCounters();
-  drawBoard();
-
-  // Send move to server
-  socket.emit("game-move", {
-    roomCode: roomCode,
-    move: {
-      x: point.x,
-      y: point.y,
-      player: myPlayerNumber,
-    },
-  });
-
-  updateStatus("Move sent! Waiting for opponent...", "#ff9800");
 }
 
 // Reset game
@@ -349,8 +479,18 @@ function updateStatus(message, color) {
 
 socket.on("connect", () => {
   console.log("Connected to server");
-  updateStatus("Connected! Waiting for game to start...", "#4CAF50");
+  updateStatus("Connected! Joining game...", "#4CAF50");
 
+  // always try to rejoin the room when we connect (or reconnect)
+  socket.emit("reconnect-to-game", {
+    roomCode: roomCode,
+    username: playerUsername,
+  });
+});
+
+// socket.io auto-reconnects by default, but we need to know when it happens
+socket.io.on("reconnect", () => {
+  console.log("Socket reconnected - rejoining room");
   socket.emit("reconnect-to-game", {
     roomCode: roomCode,
     username: playerUsername,
@@ -367,13 +507,6 @@ socket.on("player-assignment", (data) => {
   myPlayerNumber = data.playerNumber;
   gameReady = true;
 
-  // Set current player based on who starts
-  currentPlayer = data.currentTurn
-    ? myPlayerNumber
-    : myPlayerNumber === 1
-      ? 2
-      : 1;
-
   // Update UI labels
   if (myPlayerNumber === 1) {
     player1text.innerHTML = "YOU - Player 1 (Dark)";
@@ -383,67 +516,89 @@ socket.on("player-assignment", (data) => {
     player2text.innerHTML = "YOU - Player 2 (Light)";
   }
 
-  if (currentPlayer === myPlayerNumber) {
-    updateStatus(
-      `Your turn! Place a piece. You are Player ${myPlayerNumber}`,
-      "#4CAF50",
-    );
-  } else {
-    updateStatus(
-      `Waiting for opponent's move. You are Player ${myPlayerNumber}`,
-      "#ff9800",
-    );
-  }
-
+  // dont set currentPlayer here - game-controller-state will handle it
+  updateStatus("Game ready! Waiting for state...", "#4CAF50");
   drawBoard();
 });
 
 socket.on("opponent-move", (data) => {
-  console.log(
-    `Opponent move received: Player ${data.player} placed at (${data.move.x}, ${data.move.y})`,
-  );
-  isRemoteMove = true;
-
-  const point = { x: data.move.x, y: data.move.y, placed: true };
-
-  // Mark intersection as placed
-  for (let intersection of geometry.intersections) {
-    if (intersection.x === data.move.x && intersection.y === data.move.y) {
-      intersection.placed = true;
-      break;
-    }
-  }
-
-  // Add opponent's piece
-  if (data.player === 1) {
-    occupiedPointsP1.push(point);
-    player1counter.textContent = occupiedPointsP1.length;
-    currentPlayer = 2;
-    console.log(
-      `Opponent (Player 1) placed piece. Total: ${occupiedPointsP1.length}`,
-    );
-  } else {
-    occupiedPointsP2.push(point);
-    player2counter.textContent = occupiedPointsP2.length;
-    currentPlayer = 1;
-    console.log(
-      `Opponent (Player 2) placed piece. Total: ${occupiedPointsP2.length}`,
-    );
-  }
-
-  updateCounters();
-  drawBoard();
-  isRemoteMove = false;
-
-  if (currentPlayer === myPlayerNumber) {
-    updateStatus("Your turn!", "#4CAF50");
-  } else {
-    updateStatus("Waiting for opponent...", "#ff9800");
-  }
+  // we dont need to do anything here anymore
+  // game-controller-state handles the full board update
+  console.log("Opponent move received (waiting for state update)");
 });
 
 socket.on("move-confirmed", (data) => {
   console.log("Move confirmed by server");
+});
+
+// this is the important one - server sends us the real game state after every move
+// we rebuild our local board from it so everything stays in sync
+socket.on("game-controller-state", (data) => {
+  console.log("Got game state from server, current player:", data?.gameState?.currentPlayer, "capture:", data?.capturePending);
+
+  if (!data || !data.gameState) return;
+
+  const gs = data.gameState;
+
+  // store the full state so the click handler can use it
+  serverGameState = gs;
+  captureTargets = data.captureTargets || [];
+  capturePending = data.capturePending || 0;
+  selectedNode = null; // reset selection when state changes
+
+  // rebuild piece arrays from the engine's nodes array
+  occupiedPointsP1 = [];
+  occupiedPointsP2 = [];
+
+  for (let inter of geometry.intersections) {
+    inter.placed = false;
+  }
+
+  for (let i = 0; i < 24; i++) {
+    if (gs.nodes[i] === "white") {
+      const pos = NODE_POSITIONS[i];
+      occupiedPointsP1.push({ x: pos.x, y: pos.y, placed: true });
+      for (let inter of geometry.intersections) {
+        if (inter.x === pos.x && inter.y === pos.y) { inter.placed = true; break; }
+      }
+    } else if (gs.nodes[i] === "black") {
+      const pos = NODE_POSITIONS[i];
+      occupiedPointsP2.push({ x: pos.x, y: pos.y, placed: true });
+      for (let inter of geometry.intersections) {
+        if (inter.x === pos.x && inter.y === pos.y) { inter.placed = true; break; }
+      }
+    }
+  }
+
+  currentPlayer = gs.currentPlayer === "white" ? 1 : 2;
+
+  // update status from server
+  if (data.statusMessage) {
+    updateStatus(data.statusMessage, data.statusColor);
+  }
+
+  // check if its my turn
+  if (currentPlayer === myPlayerNumber && !gs.winner) {
+    if (data.capturePending > 0) {
+      updateStatus("Your turn - capture an opponent's cow!", "#ff6666");
+    } else {
+      updateStatus("Your turn!", "#4CAF50");
+    }
+  } else if (!gs.winner) {
+    updateStatus("Waiting for opponent...", "#ff9800");
+  }
+
+  if (gs.winner) {
+    const winnerNum = gs.winner === "white" ? 1 : 2;
+    if (winnerNum === myPlayerNumber) {
+      updateStatus("You win!", "#ffcc00");
+    } else {
+      updateStatus("You lost!", "#ff6666");
+    }
+  }
+
+  updateCounters();
+  drawBoard();
 });
 
 socket.on("opponent-disconnected", (data) => {
@@ -458,9 +613,10 @@ socket.on("error", (message) => {
 });
 
 socket.on("disconnect", () => {
-  console.log("Disconnected from server");
-  updateStatus("Disconnected from server!", "#f44336");
-  gameReady = false;
+  console.log("Disconnected from server - will try to reconnect");
+  updateStatus("Connection lost, reconnecting...", "#ff9800");
+  // dont set gameReady = false here, socket.io will auto-reconnect
+  // and the reconnect handler will restore the state
 });
 
 // ==========================================

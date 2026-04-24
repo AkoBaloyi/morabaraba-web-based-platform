@@ -197,7 +197,7 @@ function getLegalCaptures(state) {
   const currentPlayer = state.currentPlayer;
   const opponent = currentPlayer === 'white' ? 'black' : 'white';
 
-  // find all the opponent's cows
+  // any opponent cow can be captured
   const opponentCows = [];
   for (let nodeId = 0; nodeId < BOARD_SIZE; nodeId++) {
     if (state.nodes[nodeId] === opponent) {
@@ -205,14 +205,6 @@ function getLegalCaptures(state) {
     }
   }
 
-  // prefer cows that aren't protected by a mill
-  const cowsNotInMill = opponentCows.filter(nodeId => !isInMill(state, nodeId));
-
-  if (cowsNotInMill.length > 0) {
-    return cowsNotInMill;
-  }
-
-  // if everything's in a mill, you can take whatever you want
   return opponentCows;
 }
 

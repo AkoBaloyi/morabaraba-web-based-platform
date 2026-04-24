@@ -73,8 +73,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Connect to game server (no auth required for gameplay)
   function connectSocket() {
+    // send the token if we have one so the server knows who we are
+    const savedToken = localStorage.getItem("token");
     socket = io("http://localhost:3000", {
       transports: ["websocket", "polling"],
+      auth: { token: savedToken || null },
     });
 
     socket.on("connect", () => {
@@ -112,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sessionStorage.setItem("playerUsername", playerUsername);
 
       setTimeout(() => {
-        window.location.href = `http://127.0.0.1:5500/front-end/OnlinePlay/online-play.html?room=${data.roomCode || data}`;
+        window.location.href = `../OnlinePlay/online-play.html?room=${data.roomCode || data}`;
       }, 1000);
     });
 
@@ -136,11 +139,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (response.ok) {
         authToken = data.token;
-        playerUsername = username;
+        playerUsername = data.username || username;
         localStorage.setItem("token", authToken);
-        localStorage.setItem("username", username);
+        localStorage.setItem("username", playerUsername);
         showNotification("Login successful!", "#4CAF50");
         logInModal.classList.remove("open");
+
+        // reconnect socket with the new token so server knows who we are
+        if (socket) {
+          socket.disconnect();
+          connectSocket();
+        }
         return true;
       } else {
         alert(data.message || "Login failed");
