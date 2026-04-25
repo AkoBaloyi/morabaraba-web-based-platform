@@ -1,173 +1,157 @@
-*{
-    margin: 0px;
+* {
+  margin: 0px;
 
-    padding: 0px;
+  padding: 0px;
 
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-body{
-    margin: 0px; 
+body {
+  margin: 0px;
 
-    height: 100vh;
+  height: 100vh;
 
-    background-color: #1E2A3A;
+  background-color: #1e2a3a;
 
-    display: grid;
-    grid-template-rows: 90px 1fr; /*creates 3 row*/
-    grid-template-columns: 240px 1fr; /*creares 2 columbs*/
+  display: grid;
+  grid-template-rows: 90px 1fr; /*creates 3 row*/
+  grid-template-columns: 240px 1fr; /*creares 2 columbs*/
 
-    
-    grid-template-areas: 
-            "header header" /*Defines areas*/
-            "sidebar main";
-    
+  grid-template-areas:
+    "header header" /*Defines areas*/
+    "sidebar main";
 }
 
-.header-section{
+.header-section {
+  grid-area: header;
 
-    grid-area: header;
+  color: rgb(191, 191, 191);
 
-    color: rgb(191, 191, 191);
+  width: 100%;
 
-    width: 100%;
+  height: 90px;
 
-    height: 90px;
+  padding: 0 20px;
 
-    padding: 0 20px;
+  margin-bottom: 20px;
 
-   margin-bottom: 20px;
+  display: flex;
 
-    display: flex;
+  justify-content: space-between;
 
-    justify-content: space-between;
+  align-items: center;
 
-    align-items: center;
-
-    background-color: black;
-    
+  background-color: black;
 }
 
-.side-bar{
+.side-bar {
+  grid-area: sidebar;
 
-    grid-area: sidebar;
-    
-    background-color: #121826;
+  background-color: #121826;
 
-    color: rgb(191, 191, 191);
+  color: rgb(191, 191, 191);
 
-    padding: 20px;
-    
-    border-right: 5px solid black;
+  padding: 20px;
 
-    overflow-y: auto;
+  border-right: 5px solid black;
 
-    display: flex;
+  overflow-y: auto;
 
-    flex-direction: column;
+  display: flex;
 
-    align-items: center;
+  flex-direction: column;
 
-    gap: 20px;
-} 
+  align-items: center;
 
-.main-content{
-
-    padding: 50px;
-
-    grid-area: main;
-
-    overflow-y: auto;
+  gap: 20px;
 }
 
-.player-name{
+.main-content {
+  padding: 50px;
 
-    font-size: 20px;
+  grid-area: main;
 
-    font-weight: bold;
+  overflow-y: auto;
 }
 
-.elo{
+.player-name {
+  font-size: 20px;
 
-    color: rgb(78, 75, 75);
-
-    font-size: 20px;
-
-    font-weight: bold;
+  font-weight: bold;
 }
 
-.player-container{
+.elo {
+  color: rgb(78, 75, 75);
 
-    display: flex;
+  font-size: 20px;
 
-    /*margin-left: 20px;*/
-    
-    gap: 5px;
-
-    height: auto;
-
-    width: auto;
-
-    justify-content: center;
-
-    align-items: center;
+  font-weight: bold;
 }
 
-.player-icon{
+.player-container {
+  display: flex;
 
-    background-color: rgb(180, 179, 179);
-   
-    height: 30px;
+  /*margin-left: 20px;*/
 
-    width: 30px;
+  gap: 5px;
 
-    
+  height: auto;
+
+  width: auto;
+
+  justify-content: center;
+
+  align-items: center;
 }
 
-.boarder{
+.player-icon {
+  background-color: rgb(180, 179, 179);
 
-    background-color: rgb(181, 181, 181);
+  height: 30px;
 
-    width: 800px;
+  width: 30px;
+}
 
-    height: 550px;
+.boarder {
+  background-color: rgb(181, 181, 181);
 
-    display: flex;
+  width: 800px;
 
-    flex-direction: column;
+  height: 550px;
 
-    justify-content: center;
+  display: flex;
 
-    align-items: center;
+  flex-direction: column;
 
-    border: 5px solid black;
+  justify-content: center;
 
-    border-radius: 100px;
+  align-items: center;
 
-    margin-bottom: 50px;
-  
+  border: 5px solid black;
+
+  border-radius: 100px;
+
+  margin-bottom: 50px;
 }
 
 a {
-    text-decoration: none;
-    color: inherit;
+  text-decoration: none;
+  color: inherit;
 }
-.display{
-    
-    background-color: rgb(181, 181, 181);
+.display {
+  background-color: rgb(181, 181, 181);
 
-    border: 2px solid black;
+  border: 2px solid black;
 
-    padding: 10px 0px;
+  padding: 10px 0px;
 
-    width: 200px;
+  width: 200px;
 
-    display: flex;
+  display: flex;
 
-    justify-content: center;
+  justify-content: center;
 }
-.main-container{
-
+.main-container {
   display: flex;
 
   flex-direction: column;
@@ -175,11 +159,9 @@ a {
   justify-content: center;
 
   align-items: center;
-  
 }
 
-.tut-section{
-
+.tut-section {
   display: flex;
 
   flex-direction: column;
@@ -187,438 +169,387 @@ a {
   justify-content: center;
 
   align-items: center;
-
-  
 }
 
-.tut-title{
-    margin-left: 40%;
+.tut-title {
+  margin-left: 40%;
 
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
-.sub-headings{
-    margin-left: 10px;
+.sub-headings {
+  margin-left: 10px;
 
-    font-size: 20px;
+  font-size: 20px;
 
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
-.text{
+.text {
+  margin-left: 15px;
 
-    margin-left: 15px;
-
-    font-size: 20px;
+  font-size: 20px;
 }
 
-.tut-boarder{
+.tut-boarder {
+  background-color: rgb(106, 105, 105);
 
-    background-color: rgb(106, 105, 105);
+  width: 800px;
 
-    width: 800px;
+  height: auto;
 
-    height: auto;
+  border: 3px solid black;
 
-    border: 3px solid black;
-
-    border-radius: 25px;
+  border-radius: 25px;
 }
 
 .morabaraba-text {
-  
-  
-  
   font-family: Arial;
 
-  font-size: 50px
- 
+  font-size: 50px;
 }
 
-.log-in-button{
+.log-in-button {
+  border: solid;
 
-    border: solid;
+  height: 50%;
 
-    height: 50%;
+  /*margin-right: 20px;*/
 
-    /*margin-right: 20px;*/
+  padding: 10px;
 
-    padding: 10px;
+  font-family: Arial;
 
-    font-family: Arial;
+  font-weight: bold;
 
-    font-weight: bold;
+  border-radius: 5px;
 
-    border-radius: 5px;
+  background-color: rgb(191, 191, 191);
 
-    background-color: rgb(191, 191, 191);
-
-    transition: box-shadow 0.15s;
-   
+  transition: box-shadow 0.15s;
 }
 
-.log-in-button:hover{
-
-    box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
+.log-in-button:hover {
+  box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
-.local-button{
+.local-button {
+  display: block;
 
-    display: block;
- 
-    border: solid;
+  border: solid;
 
-    padding: 10px;
+  padding: 10px;
 
-    font-family: Arial;
+  font-family: Arial;
 
-    font-weight: bold;
+  font-weight: bold;
 
-    font-size: 15px;
+  font-size: 15px;
 
-    border-radius: 5px;
+  border-radius: 5px;
 
-    color: black;
+  color: black;
 
-    background-color: rgb(191, 191, 191);
+  background-color: rgb(191, 191, 191);
 
-    transition: padding 0.15s, font-size 0.15s, box-shadow 0.15s;
-
+  transition:
+    padding 0.15s,
+    font-size 0.15s,
+    box-shadow 0.15s;
 }
 
-.local-button:hover{
+.local-button:hover {
+  padding: 18px;
 
-    padding: 18px;
+  font-size: 18px;
 
-    font-size: 18px;
-
-    box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
-
+  box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
-.online-button{
+.online-button {
+  display: block;
 
-    display: block;
+  border: solid;
 
-    border: solid;
+  padding: 10px;
 
-    padding: 10px;
+  font-family: Arial;
 
-    font-family: Arial;
+  font-weight: bold;
 
-    font-weight: bold;
+  font-size: 15px;
 
-    font-size: 15px;
+  border-radius: 5px;
 
-    border-radius: 5px;
+  color: black;
 
-    color: black;
+  background-color: rgb(191, 191, 191);
 
-    background-color: rgb(191, 191, 191);
-
-    transition: padding 0.15s, font-size 0.15s, box-shadow 0.15s;
-
+  transition:
+    padding 0.15s,
+    font-size 0.15s,
+    box-shadow 0.15s;
 }
 
-.online-button:hover{
+.online-button:hover {
+  padding: 18px;
 
-    padding: 18px;
+  font-size: 18px;
 
-    font-size: 18px;
-
-    box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
-.modal{
+.modal {
+  background-color: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: all 0.3s ease-in-out;
+  z-index: -1;
 
-    background-color: rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transition: all 0.3s ease-in-out;
-    z-index: -1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.modal.open{
-
-    opacity: 1;
-    z-index: 999;
+.modal.open {
+  opacity: 1;
+  z-index: 999;
 }
 
-.modal-inner{
+.modal-inner {
+  background-color: #3d5898;
 
-    background-color: #3d5898;
+  border-radius: 15px;
 
-    border-radius: 15px;
+  padding: 15px 25px;
 
-    padding: 15px 25px;
+  display: flex;
 
-    display: flex;
+  flex-direction: column;
 
-    flex-direction: column;
+  align-items: center;
 
-    align-items: center;
+  justify-content: center;
 
-    justify-content: center;
+  width: 500px;
 
-    width: 500px;
+  height: 500px;
 
-    height: 500px;
+  color: black;
 
-    color: black;
-
-    gap: 30px;
+  gap: 30px;
 }
 
-.modal-headings{
-
-    font-size: 50px;
+.modal-headings {
+  font-size: 50px;
 }
 
-.closeModal{
+.closeModal {
+  display: block;
 
-    display: block;
+  background-color: white;
 
-    background-color: white;
+  border: solid;
 
-    border: solid;
+  padding: 10px;
 
-    padding: 10px;
+  font-weight: 700;
 
-    font-weight: 700;
-
-    transition: background-color 0.15s;
+  transition: background-color 0.15s;
 }
 
-.closeModal:hover{
-
-    background-color: rgb(181, 181, 181);
+.closeModal:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.Play-with-firend{
-
-   display: block;
-   padding: 20px;
-   border-radius: 20px;
-   background-color: white;
-   border: solid;
-   font-weight: bold;
-   transition: background-color 0.15s;
-   
+.Play-with-firend {
+  display: block;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.Play-with-firend:hover{
-
-    background-color: rgb(181, 181, 181);
-    
+.Play-with-firend:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.Play-with-AI{
-
-   display: block;
-   padding: 20px;
-   border-radius: 20px;
-   background-color: white;
-   border: solid;
-   font-weight: bold;
-   transition: background-color 0.15s;
+.Play-with-AI {
+  display: block;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.Play-with-AI:hover{
-
-    background-color: rgb(181, 181, 181);
+.Play-with-AI:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.username-input{
-
-    display: block;
-    width: 250px;
-    height: 40px;
-    border-color: black;
-    border: solid;
+.username-input {
+  display: block;
+  width: 250px;
+  height: 40px;
+  border-color: black;
+  border: solid;
 }
 
-.email-input{
-
-    display: block;
-    width: 250px;
-    height: 40px;
-    border-color: black;
-    border: solid;
+.email-input {
+  display: block;
+  width: 250px;
+  height: 40px;
+  border-color: black;
+  border: solid;
 }
 
-.password-input{
-
-    display: block;
-    width: 250px;
-    height: 40px;
-    border-color: black;
-    border: solid;
+.password-input {
+  display: block;
+  width: 250px;
+  height: 40px;
+  border-color: black;
+  border: solid;
 }
 
-.inner-login-button{
-
-    display: block;
-    padding: 15px;
-    border-radius: 15px;
-    background-color: white;
-    border: solid;
-    font-weight: bold;
-       
+.inner-login-button {
+  display: block;
+  padding: 15px;
+  border-radius: 15px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
 }
 
-.inner-login-button:hover{
-   
-    background-color: rgb(181, 181, 181);
+.inner-login-button:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.inner-signup-button{
-
-    display: block;
-    font-weight: bold;
-    padding: 15px;
-    border-radius: 15px;
-    background-color: white;
-    border: solid;
-    transition: background-color 0.15s;
+.inner-signup-button {
+  display: block;
+  font-weight: bold;
+  padding: 15px;
+  border-radius: 15px;
+  background-color: white;
+  border: solid;
+  transition: background-color 0.15s;
 }
 
-.inner-signup-button:hover{
-   
-    background-color: rgb(181, 181, 181);
+.inner-signup-button:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-
-.create-account-button{
-
-    background-color: white;
-    padding: 15px;
-    border: solid;
-    border-radius: 15px;
-    font-weight: bold;
-    transition: padding 0.15s, margin-top 0.15s, font-size 0.15s, background-color 0.15s;
+.create-account-button {
+  background-color: white;
+  padding: 15px;
+  border: solid;
+  border-radius: 15px;
+  font-weight: bold;
+  transition:
+    padding 0.15s,
+    margin-top 0.15s,
+    font-size 0.15s,
+    background-color 0.15s;
 }
 
-.create-account-button:hover{
-    
-    background-color: rgb(181, 181, 181);
+.create-account-button:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.create-room-button{
-
-    display: block;
-    padding: 20px;
-    border-radius: 20px;
-    background-color: white;
-    border: solid;
-    font-weight: bold;
-    transition: background-color 0.15s;
+.create-room-button {
+  display: block;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.create-room-button:hover{
-
-    background-color: rgb(181, 181, 181);
-
+.create-room-button:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.join-room-button{
-
-    display: block;
-    padding: 20px;
-    border-radius: 20px;
-    background-color: white;
-    border: solid;
-    font-weight: bold;
-    transition: background-color 0.15s;
+.join-room-button {
+  display: block;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.join-room-button:hover{
-
-    background-color: rgb(181, 181, 181);
-
+.join-room-button:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.ai-difficulty-button-1-3{
-
-    display: block;
-    padding: 20px;
-    border-radius: 20px;
-    background-color: white;
-    border: solid;
-    font-weight: bold;
-    transition: background-color 0.15s;
-
+.ai-difficulty-button-1-3 {
+  display: block;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.ai-difficulty-button-1-3:hover{
-   
-    background-color: rgb(181, 181, 181);
-
+.ai-difficulty-button-1-3:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.ai-difficulty-button-2{
-
-    display: block;
-    padding: 20px;
-    border-radius: 20px;
-    background-color: white;
-    border: solid;
-    font-weight: bold;
-    transition: background-color 0.15s;
-
+.ai-difficulty-button-2 {
+  display: block;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: white;
+  border: solid;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.ai-difficulty-button-2:hover{
-
-    background-color: rgb(181, 181, 181);
+.ai-difficulty-button-2:hover {
+  background-color: rgb(181, 181, 181);
 }
 
-.code-display-text{
-
-    font-size: 25px;
+.code-display-text {
+  font-size: 25px;
 }
 
-.room-code-text{
-
-    font-size: 25px;
-    font-weight: bold;
-   
+.room-code-text {
+  font-size: 25px;
+  font-weight: bold;
 }
 
-.input-bar{
-
-    padding: 20px;
-    border-color: black;
-    border: solid;
+.input-bar {
+  padding: 20px;
+  border-color: black;
+  border: solid;
 }
 
-.enter-code-text{
-   
-    font-weight: bold;
-    font-size: 25px;
+.enter-code-text {
+  font-weight: bold;
+  font-size: 25px;
 }
 
-.join-button{
-
-    display:block;
-    padding: 15px;
-    padding-left: 20px;
-    padding-right: 20px;
-    border-radius: 15px;
-    border: solid;
-    background-color: white;
-    font-weight: bold;
-    transition: background-color 0.15s;
+.join-button {
+  display: block;
+  padding: 15px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 15px;
+  border: solid;
+  background-color: white;
+  font-weight: bold;
+  transition: background-color 0.15s;
 }
 
-.join-button:hover{
-
-    background-color: rgb(181, 181, 181);
+.join-button:hover {
+  background-color: rgb(181, 181, 181);
 }

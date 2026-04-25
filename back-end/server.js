@@ -20,16 +20,22 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5500";
 const PORT = process.env.PORT || 3000;
 
 // allow both localhost and 127.0.0.1 since browsers treat them differently
-const allowedOrigins = [CORS_ORIGIN, "http://localhost:5500", "http://127.0.0.1:5500"];
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  }
-}));
+const allowedOrigins = [
+  CORS_ORIGIN,
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+];
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  }),
+);
 app.use(express.json());
 
 // use the proper auth routes that actually check the database
@@ -386,18 +392,23 @@ io.on("connection", (socket) => {
           (room.gameState.winner === "white" && p.playerNumber === 1) ||
           (room.gameState.winner === "black" && p.playerNumber === 2),
       );
-      const loserPlayer = room.players.find(p => p !== winnerPlayer);
+      const loserPlayer = room.players.find((p) => p !== winnerPlayer);
       console.log(`  GAME OVER - Winner: ${winnerPlayer?.username}`);
 
       // update elo ratings for logged-in players
       const db = getDB();
-      updateEloAfterGame(db, winnerPlayer?.username, loserPlayer?.username, function(eloResult) {
-        io.to(roomCode).emit("game-over", {
-          winner: winnerPlayer?.username,
-          reason: room.gameState.winReason,
-          elo: eloResult // null if guests, otherwise has the rating changes
-        });
-      });
+      updateEloAfterGame(
+        db,
+        winnerPlayer?.username,
+        loserPlayer?.username,
+        function (eloResult) {
+          io.to(roomCode).emit("game-over", {
+            winner: winnerPlayer?.username,
+            reason: room.gameState.winReason,
+            elo: eloResult, // null if guests, otherwise has the rating changes
+          });
+        },
+      );
     }
   });
 
