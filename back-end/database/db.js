@@ -20,9 +20,12 @@ db.serialize(() => {
     `);
 
   // add elo column if the table already exists without it
-  db.run(`ALTER TABLE users ADD COLUMN elo INTEGER DEFAULT 1200`, function(err) {
-    // ignore error - just means column already exists
-  });
+  db.run(
+    `ALTER TABLE users ADD COLUMN elo INTEGER DEFAULT 1200`,
+    function (err) {
+      // ignore error - just means column already exists
+    },
+  );
 
   // Rooms table
   db.run(`

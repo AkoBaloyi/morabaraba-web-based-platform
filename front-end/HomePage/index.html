@@ -15,65 +15,72 @@
     <script src="./Menu.js" defer></script>
   </head>
 
-  
-
   <body>
-
     <header class="header-section">
-
       <div class="player-container">
-        <div class="player-icon"></div><span class="player-name">Player Name</span> (<span class="elo">Elo</span>)
+        <div class="player-icon"></div>
+        <span class="player-name">Player Name</span> (<span class="elo"
+          >Elo</span
+        >)
       </div>
 
       <h1 class="morabaraba-text">Morabaraba</h1>
-    
-      <button class="log-in-button" id="log-in-button">Log-in</button>
 
+      <button class="log-in-button" id="log-in-button">Log-in</button>
     </header>
 
-    <aside class="side-bar"> 
-
+    <aside class="side-bar">
       <h2>Menu Tab</h2>
 
       <button class="local-button" id="local-button">Local Play</button>
 
       <button class="online-button" id="online-button">Online Play</button>
-
     </aside>
 
     <main class="main-content">
-     
       <section class="tut-section">
-
         <div class="tut-boarder">
-
           <h2 class="tut-title">How To Play:</h2>
 
           <h3 class="sub-headings">1.Placement</h3>
 
-          <p class="text">Place your tokens on one of the intersections on the game board when is your turn to play. Each player has a total of 12 tokens.</p>
+          <p class="text">
+            Place your tokens on one of the intersections on the game board when
+            is your turn to play. Each player has a total of 12 tokens.
+          </p>
 
           <h4 class="sub-headings">2.Mills</h4>
 
-          <p class="text">Mills are formed when a player manages to align three of their tokens on three connected inter-sections. When a player forms a mill, that player can capture their opponet's tokens, depending on the number of mills formed. For example; if 2 mills are formed after one move, 2 of the opponenet's tokens need to be captured.</p>
+          <p class="text">
+            Mills are formed when a player manages to align three of their
+            tokens on three connected inter-sections. When a player forms a
+            mill, that player can capture their opponet's tokens, depending on
+            the number of mills formed. For example; if 2 mills are formed after
+            one move, 2 of the opponenet's tokens need to be captured.
+          </p>
 
           <h5 class="sub-headings">3.Movement</h5>
 
-          <p  class="text">After all tokens are placed on the board, players can now move one token per turn on empty intersections directly next to the token.</p>
+          <p class="text">
+            After all tokens are placed on the board, players can now move one
+            token per turn on empty intersections directly next to the token.
+          </p>
 
           <h6 class="sub-headings">4.Flying</h6>
 
-          <p class="text">If a player only has 3 tokens left, that player is no longer restricted to moving their tokens to inter-sections directly next to the tokens. They can now "fly" to any free inter-section on the board.</p>
-
+          <p class="text">
+            If a player only has 3 tokens left, that player is no longer
+            restricted to moving their tokens to inter-sections directly next to
+            the tokens. They can now "fly" to any free inter-section on the
+            board.
+          </p>
         </div>
-
       </section>
-      
+
       <div class="modal" id="modal">
         <div class="modal-inner">
-          
           <button class="closeModal" id="closeModal">back</button>
-          
+
           <h2 class="modal-headings">Local Menu</h2>
 
           <a href="../HumanVSHuman/interactive.html">
@@ -141,7 +148,12 @@
             required
           />
 
-          <input class="email-input" type="email" placeholder="Email" required />
+          <input
+            class="email-input"
+            type="email"
+            placeholder="Email"
+            required
+          />
 
           <input
             class="password-input"
@@ -161,9 +173,8 @@
           <h2 class="modal-headings">Created Room</h2>
           <p class="room-code-text">Room Code :</p>
           <div class="display">
-              <span class="code-display-text">CODE DISPLAY HERE</span>
+            <span class="code-display-text">CODE DISPLAY HERE</span>
           </div>
-          
         </div>
       </div>
 
@@ -195,12 +206,8 @@
           <a href="../Hard AI/interactiveHardAI.html">
             <button class="ai-difficulty-button-1-3">Hard Mode</button>
           </a>
-
         </div>
-
       </div>
-
     </main>
-    
   </body>
 </html>
