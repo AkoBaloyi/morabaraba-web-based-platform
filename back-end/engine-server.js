@@ -125,7 +125,8 @@ function getLegalCaptures(state) {
   for (let i = 0; i < BOARD_SIZE; i++) {
     if (state.nodes[i] === opponent) opponentNodes.push(i);
   }
-  return opponentNodes;
+  const notInMill = opponentNodes.filter((n) => !isInMill(state, n));
+  return notInMill.length > 0 ? notInMill : opponentNodes;
 }
 
 // compares mills before and after a move to find only the NEW ones
