@@ -19,7 +19,7 @@
     <header class="header-section">
       <div class="player-container">
         <div class="player-icon"></div>
-        <span class="player-name">Player Name</span> (<span class="elo"
+        <span class="player-name">Guest-Player</span> (<span class="elo"
           >Elo</span
         >)
       </div>
@@ -27,6 +27,7 @@
       <h1 class="morabaraba-text">Morabaraba</h1>
 
       <button class="log-in-button" id="log-in-button">Log-in</button>
+      <button class="log-out-button" id="log-out-button">Log-out</button>
     </header>
 
     <aside class="side-bar">
@@ -49,13 +50,9 @@
             is your turn to play. Each player has a total of 12 tokens.
           </p>
           <div class="video">
-
             <video controls muted loop width="300">
-
-              <source src="../Videos/PLacement.mp4">
-
+              <source src="../Videos/PLacement.mp4" />
             </video>
-
           </div>
 
           <h4 class="sub-headings">2.Mills</h4>
@@ -69,13 +66,9 @@
           </p>
 
           <div class="video">
-
             <video controls muted loop width="300">
-
-              <source src="../Videos/Mill.mp4">
-
+              <source src="../Videos/Mill.mp4" />
             </video>
-
           </div>
 
           <h5 class="sub-headings">3.Movement</h5>
@@ -86,13 +79,9 @@
           </p>
 
           <div class="video">
-
             <video controls muted loop width="300">
-
-              <source src="../Videos/Movement.mp4">
-
+              <source src="../Videos/Movement.mp4" />
             </video>
-
           </div>
 
           <h6 class="sub-headings">4.Flying</h6>
@@ -105,13 +94,9 @@
           </p>
 
           <div class="video">
-
             <video controls muted loop width="300">
-
-              <source src="../Videos/Fly.mp4">
-
+              <source src="../Videos/Fly.mp4" />
             </video>
-
           </div>
         </div>
       </section>
@@ -143,6 +128,20 @@
           <button class="join-room-button" id="join-room-button">
             Join Room
           </button>
+        </div>
+      </div>
+
+      <div class="logout-modal" id="logout-confirm">
+        <div class="modal-content logout-confirm-content">
+          <button class="close-btn close-logout-modal">&times;</button>
+          <h2>Confirm Logout</h2>
+          <p>Are you sure you want to logout?</p>
+          <div class="logout-confirm-buttons">
+            <button class="btn-danger" id="confirm-logout-btn">
+              Yes, Logout
+            </button>
+            <button class="btn-secondary" id="cancel-logout-btn">Cancel</button>
+          </div>
         </div>
       </div>
 

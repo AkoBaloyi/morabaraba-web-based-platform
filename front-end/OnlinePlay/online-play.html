@@ -24,6 +24,8 @@
 
       <div class="status-bar">
         <span id="statusText">Connecting to game...</span>
+        <br />
+        <span id="phaseText">Phase: Placement</span>
       </div>
 
       <canvas
@@ -42,6 +44,7 @@
     </div>
 
     <!-- load the online board script  -->
-    <script src="./online-board.js"></script>
+    <script src="./online-board.js" defer></script>
+    <script src="../game-controller.js" defer></script>
   </body>
 </html>

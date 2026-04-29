@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeOnlineBtn = document.getElementById("closeOnlineMenuModal");
   const closeBtn = document.getElementById("closeModal");
   const closeAiBtn = document.getElementById("closeAiMenuModal");
+  const playerDisplay = document.querySelector(".player-name");
 
   const modal = document.getElementById("modal");
   const aiMenuModal = document.getElementById("ai-menu-modal");
@@ -31,6 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeSignUpBtn = document.getElementById("closeSignUpModal");
   const loginSubmitBtn = document.querySelector(".inner-login-button");
   const signUpSubmitBtn = document.querySelector(".inner-signup-button");
+  const logoutBtn = document.getElementById("log-out-button");
+
+  //DOM Elements for logout Confirmation
+  const logoutConfirmModal = document.getElementById("logout-confirm");
+  const confirmLogoutBtn = document.getElementById("confirm-logout-btn");
+  const cancelLogoutBtn = document.getElementById("cancel-logout-btn");
+  const closeLogoutModalBtn = document.querySelector(".close-logout-modal");
 
   openBtn.addEventListener("click", () => modal.classList.add("open"));
   closeBtn.addEventListener("click", () => modal.classList.remove("open"));
@@ -50,9 +58,76 @@ document.addEventListener("DOMContentLoaded", () => {
   let playerUsername = null;
   let authToken = null;
 
+  //Show logout confirmation modal function
+  function showLogoutConfirmModal() {
+    if (logoutConfirmModal) {
+      logoutConfirmModal.classList.add("open");
+    }
+  }
+
+  //Hide logout confirmation modal
+  function hideLogoutConfirmModal() {
+    if (logoutConfirmModal) {
+      logoutConfirmModal.classList.remove("open");
+    }
+  }
+
+  //Update UI based on login status
+  function updateAuthUI() {
+    if (isLoggedIn()) {
+      // User is logged in
+      if (logInBtn) logInBtn.style.display = "none";
+      if (signUpBtn) signUpBtn.style.display = "none";
+      if (logoutBtn) {
+        logoutBtn.style.display = "block";
+        // Update logout button text with username
+        const username = localStorage.getItem("username");
+        logoutBtn.textContent = `Log-out`;
+      }
+    } else {
+      // User is not logged in
+      if (logInBtn) logInBtn.style.display = "block";
+      if (signUpBtn) signUpBtn.style.display = "block";
+      if (logoutBtn) logoutBtn.style.display = "none";
+    }
+  }
+
+  //Logout function
+  function logout() {
+    // Clear local storage
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+
+    // Clear global variables
+    authToken = null;
+    playerUsername = null;
+
+    // Show notification
+    //showNotification("Logged out successfully!", "#4CAF50");
+
+    // Update UI buttons
+    updateAuthUI();
+
+    //guest-player display
+    if (playerDisplay) playerDisplay.textContent = "Guest-player";
+
+    // Disconnect and reconnect socket as guest
+    if (socket) {
+      socket.disconnect();
+      // Reconnect as guest (without token)
+      setTimeout(() => {
+        connectSocket();
+      }, 100);
+    }
+
+    console.log("User logged out");
+  }
+
   // Check if user is logged in
   function isLoggedIn() {
-    return authToken !== null && playerUsername !== null;
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    return token && token !== "null" && username && username !== "null";
   }
 
   // Show notification helper
@@ -60,20 +135,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const notif = document.createElement("div");
     notif.textContent = message;
     notif.style.position = "fixed";
-    notif.style.bottom = "20px";
-    notif.style.right = "20px";
+    notif.style.top = "90px";
+    notif.style.left = "50%";
+    notif.style.transform = "translateX(-50%)";
     notif.style.backgroundColor = color;
     notif.style.color = "white";
     notif.style.padding = "10px";
     notif.style.borderRadius = "5px";
     notif.style.zIndex = "9999";
+    notif.style.whiteSpace = "nowrap";
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 3000);
   }
 
-  // Connect to game server (no auth required for gameplay)
+  // Connect to game server
   function connectSocket() {
-    // send the token if we have one so the server knows who we are
     const savedToken = localStorage.getItem("token");
     socket = io("http://localhost:3000", {
       transports: ["websocket", "polling"],
@@ -111,8 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on("game-start", (data) => {
       console.log("Game starting:", data);
+      const username = localStorage.getItem("username") || playerUsername;
       sessionStorage.setItem("gameRoomCode", data.roomCode || data);
-      sessionStorage.setItem("playerUsername", playerUsername);
+      sessionStorage.setItem("playerUsername", username);
 
       setTimeout(() => {
         window.location.href = `../OnlinePlay/online-play.html?room=${data.roomCode || data}`;
@@ -144,12 +221,22 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("username", playerUsername);
         showNotification("Login successful!", "#4CAF50");
         logInModal.classList.remove("open");
+        playerDisplay.textContent = `${username}`;
 
-        // reconnect socket with the new token so server knows who we are
+        // Update UI buttons
+        updateAuthUI();
+
+        // Reconnect socket with the new token
         if (socket) {
           socket.disconnect();
           connectSocket();
         }
+
+        // After successful login, open the online menu
+        setTimeout(() => {
+          onlineMenuModal.classList.add("open");
+        }, 500);
+
         return true;
       } else {
         alert(data.message || "Login failed");
@@ -192,23 +279,51 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================
-  // Check for existing session on page load
+  // OPEN ONLINE MENU (check login first)
   // ============================================
+  function handleOnlinePlay() {
+    if (!socket || !socket.connected) {
+      alert("Connecting to server...");
+      return;
+    }
+
+    if (isLoggedIn()) {
+      // User is logged in, show online menu
+      console.log("User logged in, showing online menu");
+      onlineMenuModal.classList.add("open");
+    } else {
+      // User not logged in, show login modal
+      console.log("User not logged in, showing login modal");
+      showNotification("Log-in/sign-up to play online", "#000080");
+      logInModal.classList.add("open");
+    }
+  }
+
+  // Check for existing session on page load
   function checkExistingSession() {
     const savedToken = localStorage.getItem("token");
     const savedUsername = localStorage.getItem("username");
 
-    if (savedToken && savedUsername) {
+    if (
+      savedToken &&
+      savedToken !== "null" &&
+      savedUsername &&
+      savedUsername !== "null"
+    ) {
       authToken = savedToken;
       playerUsername = savedUsername;
       console.log("Restored session for:", playerUsername);
       showNotification(`Welcome back, ${playerUsername}!`, "#4CAF50");
+      if (playerDisplay) playerDisplay.textContent = `${playerUsername}`;
     } else {
       // Guest mode
       playerUsername = "Guest_" + Math.floor(Math.random() * 1000);
       localStorage.setItem("username", playerUsername);
       console.log("Guest mode:", playerUsername);
     }
+
+    // Update UI based on login status
+    updateAuthUI();
   }
 
   // ============================================
@@ -285,6 +400,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Logout button handler
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      console.log("Logout button clicked");
+      showLogoutConfirmModal();
+    });
+  }
+
+  //Confirm logout button
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener("click", () => {
+      logout();
+      hideLogoutConfirmModal();
+    });
+  }
+
+  //Cancel logout button
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener("click", () => {
+      hideLogoutConfirmModal();
+    });
+  }
+
+  //close modal with X button
+  if (closeLogoutModalBtn) {
+    closeLogoutModalBtn.addEventListener("click", () => {
+      hideLogoutConfirmModal();
+    });
+  }
+
   // ============================================
   // GAME MENU HANDLERS
   // ============================================
@@ -292,29 +437,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Connect to game server
   connectSocket();
 
-  // Online button - now checks if logged in but doesn't force it
-  onlineBtn.addEventListener("click", () => {
-    if (!socket || !socket.connected) {
-      alert("Connecting to server...");
-      return;
-    }
-
-    //Show username in menu if logged in
-    if (isLoggedIn()) {
-      console.log(`Playing as: ${playerUsername}`);
-    } else {
-      console.log(`Playing as guest: ${playerUsername}`);
-    }
-
-    onlineMenuModal.classList.add("open");
-  });
+  // Online button - shows login modal if not logged in, otherwise shows online menu
+  if (onlineBtn) {
+    onlineBtn.addEventListener("click", handleOnlinePlay);
+  }
 
   createRoomBtn.addEventListener("click", () => {
     if (!socket || !socket.connected) {
       alert("Not connected to server");
       return;
     }
-    socket.emit("create-room", { username: playerUsername });
+    const username = localStorage.getItem("username") || playerUsername;
+    socket.emit("create-room", { username: username });
     onlineMenuModal.classList.remove("open");
   });
 
@@ -333,7 +467,8 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Not connected to server");
       return;
     }
-    socket.emit("join-room", { roomCode, username: playerUsername });
+    const username = localStorage.getItem("username") || playerUsername;
+    socket.emit("join-room", { roomCode, username: username });
   });
 
   // Close buttons for modals
@@ -349,5 +484,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize
   checkExistingSession();
-  console.log("Menu ready - Login/Signup available, gameplay optional");
+  console.log("Menu ready - Login required for online play");
 });

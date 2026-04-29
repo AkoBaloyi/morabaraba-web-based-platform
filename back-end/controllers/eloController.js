@@ -24,7 +24,7 @@ function calculateNewRatings(winnerElo, loserElo) {
     winnerNewElo: winnerNew,
     loserNewElo: loserNew,
     winnerChange: winnerNew - winnerElo,
-    loserChange: loserNew - loserElo
+    loserChange: loserNew - loserElo,
   };
 }
 
@@ -32,37 +32,68 @@ function calculateNewRatings(winnerElo, loserElo) {
 // callback gets { winnerElo, loserElo, winnerChange, loserChange } or null if players arent registered
 function updateEloAfterGame(db, winnerUsername, loserUsername, callback) {
   // look up both players
-  db.get("SELECT id, elo FROM users WHERE username = ?", [winnerUsername], function(err, winner) {
-    if (err || !winner) {
-      console.log("Winner not found in db (probably a guest), skipping elo update");
-      if (callback) callback(null);
-      return;
-    }
-
-    db.get("SELECT id, elo FROM users WHERE username = ?", [loserUsername], function(err, loser) {
-      if (err || !loser) {
-        console.log("Loser not found in db (probably a guest), skipping elo update");
+  db.get(
+    "SELECT id, elo FROM users WHERE username = ?",
+    [winnerUsername],
+    function (err, winner) {
+      if (err || !winner) {
+        console.log(
+          "Winner not found in db (probably a guest), skipping elo update",
+        );
         if (callback) callback(null);
         return;
       }
 
-      var result = calculateNewRatings(winner.elo, loser.elo);
+      db.get(
+        "SELECT id, elo FROM users WHERE username = ?",
+        [loserUsername],
+        function (err, loser) {
+          if (err || !loser) {
+            console.log(
+              "Loser not found in db (probably a guest), skipping elo update",
+            );
+            if (callback) callback(null);
+            return;
+          }
 
-      // update both
-      db.run("UPDATE users SET elo = ? WHERE id = ?", [result.winnerNewElo, winner.id]);
-      db.run("UPDATE users SET elo = ? WHERE id = ?", [result.loserNewElo, loser.id]);
+          var result = calculateNewRatings(winner.elo, loser.elo);
 
-      console.log("Elo updated: " + winnerUsername + " " + winner.elo + " -> " + result.winnerNewElo +
-        ", " + loserUsername + " " + loser.elo + " -> " + result.loserNewElo);
+          // update both
+          db.run("UPDATE users SET elo = ? WHERE id = ?", [
+            result.winnerNewElo,
+            winner.id,
+          ]);
+          db.run("UPDATE users SET elo = ? WHERE id = ?", [
+            result.loserNewElo,
+            loser.id,
+          ]);
 
-      if (callback) callback({
-        winnerElo: result.winnerNewElo,
-        loserElo: result.loserNewElo,
-        winnerChange: result.winnerChange,
-        loserChange: result.loserChange
-      });
-    });
-  });
+          console.log(
+            "Elo updated: " +
+              winnerUsername +
+              " " +
+              winner.elo +
+              " -> " +
+              result.winnerNewElo +
+              ", " +
+              loserUsername +
+              " " +
+              loser.elo +
+              " -> " +
+              result.loserNewElo,
+          );
+
+          if (callback)
+            callback({
+              winnerElo: result.winnerNewElo,
+              loserElo: result.loserNewElo,
+              winnerChange: result.winnerChange,
+              loserChange: result.loserChange,
+            });
+        },
+      );
+    },
+  );
 }
 
 module.exports = { calculateNewRatings, updateEloAfterGame };

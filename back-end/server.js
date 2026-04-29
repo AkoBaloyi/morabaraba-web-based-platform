@@ -11,6 +11,7 @@ const Engine = require("./engine-server");
 const authRoutes = require("./routes/authRoutes");
 const { JWT_SECRET } = require("./controllers/authController");
 const { updateEloAfterGame } = require("./controllers/eloController");
+const eloController = require("./controllers/eloController");
 const { getDB } = require("./database/db");
 
 const app = express();
@@ -25,6 +26,7 @@ const allowedOrigins = [
   "http://localhost:5500",
   "http://127.0.0.1:5500",
 ];
+
 app.use(
   cors({
     origin: function (origin, callback) {

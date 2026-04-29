@@ -16,7 +16,9 @@ async function registerUser(req, res) {
     return res.status(400).json({ error: "Username must be 3-20 characters" });
   }
   if (password.length < 6) {
-    return res.status(400).json({ error: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ error: "Password must be at least 6 characters" });
   }
   // simple email check - not perfect but catches obvious mistakes
   if (!email.includes("@") || !email.includes(".")) {
@@ -30,7 +32,10 @@ async function registerUser(req, res) {
     "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
     [username.trim(), email.trim().toLowerCase(), hashed],
     function (err) {
-      if (err) return res.status(400).json({ error: "Username or email already taken" });
+      if (err)
+        return res
+          .status(400)
+          .json({ error: "Username or email already taken" });
       res.json({ message: "Registered successfully" });
     },
   );
@@ -45,15 +50,23 @@ async function loginUser(req, res) {
 
   const db = getDB();
 
-  db.get("SELECT * FROM users WHERE username = ?", [username.trim()], (err, user) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (!user || !bcrypt.compareSync(password, user.password)) {
-      return res.status(401).json({ error: "Invalid username or password" });
-    }
+  db.get(
+    "SELECT * FROM users WHERE username = ?",
+    [username.trim()],
+    (err, user) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+      if (!user || !bcrypt.compareSync(password, user.password)) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "2h" });
-    res.json({ message: "Login successful", token, username: user.username });
-  });
+      const token = jwt.sign(
+        { id: user.id, username: user.username },
+        JWT_SECRET,
+        { expiresIn: "2h" },
+      );
+      res.json({ message: "Login successful", token, username: user.username });
+    },
+  );
 }
 
 // middleware to check if a request has a valid token
