@@ -304,6 +304,15 @@ function updateInfo() {
       ? 'Opponent has fewer than 3 cows' : 'Opponent has no legal moves';
     statusText.textContent = winnerName + ' wins! (' + reason + ')';
     statusText.style.color = '#ffcc00';
+
+    // show the game-over modal if it exists in the HTML
+    var endModal = document.getElementById('end-modal');
+    if (endModal) {
+      var endStat = endModal.querySelector('.end-stat');
+      if (endStat) endStat.textContent = winnerName + ' Wins!';
+      endModal.style.opacity = '1';
+      endModal.style.zIndex = '1000';
+    }
   } else if (gameState.capturePending > 0) {
     statusText.textContent = currentName + ' - Capture an opponent cow! (click a red-highlighted cow)';
     statusText.style.color = '#ff6666';
@@ -442,56 +451,82 @@ function handleClick(event) {
 }
 
 // ============================================================
-// AI TURN - After the human moves, check if AI should go next
+// AI TURN - Uses a Web Worker so the browser doesnt freeze
 // ============================================================
 
+// try to create the worker, fall back to main thread if it fails
+// (workers dont work when opening HTML files directly without a server)
+var aiWorker = null;
+try {
+  aiWorker = new Worker('./ai-worker.js');
+  aiWorker.onmessage = function(e) {
+    var move = e.data.move;
+    if (!move) {
+      aiThinking = false;
+      drawBoard();
+      updateInfo();
+      return;
+    }
+    var result = Engine.applyMove(gameState, move);
+    if (result.error) {
+      console.error('AI made invalid move:', move, result.message);
+      aiThinking = false;
+      drawBoard();
+      updateInfo();
+      return;
+    }
+    gameState = result;
+
+    // if its still the AI's turn (capture after mill), ask for another move
+    if (gameState.currentPlayer === 'black' && !gameState.winner) {
+      aiWorker.postMessage({ state: gameState, difficulty: gameMode });
+    } else {
+      aiThinking = false;
+      drawBoard();
+      updateInfo();
+    }
+  };
+} catch (err) {
+  // worker failed to load, we'll use the fallback
+  console.log('Web Worker not available, using main thread for AI');
+  aiWorker = null;
+}
+
 function afterHumanMove() {
-  // if game is over, nothing to do
   if (gameState.winner) return;
-
-  // in human vs human mode, no AI needed
   if (gameMode === 'human') return;
-
-  // if it's still the human's turn (e.g. capture pending after mill), wait
   if (gameState.currentPlayer === 'white') return;
 
-  // it's the AI's turn - use setTimeout so the UI updates first
   aiThinking = true;
   drawBoard();
   updateInfo();
 
-  setTimeout(function() {
-    doAiTurn();
-  }, 300); // small delay so the player can see what happened
+  if (aiWorker) {
+    // use the worker (doesnt freeze the UI)
+    setTimeout(function() {
+      aiWorker.postMessage({ state: gameState, difficulty: gameMode });
+    }, 200);
+  } else {
+    // fallback: run on main thread (freezes briefly for hard AI)
+    setTimeout(function() {
+      doAiTurnFallback();
+    }, 300);
+  }
 }
 
-function doAiTurn() {
-  // keep making moves until it's the human's turn again or game ends
-  // (the AI might need to make multiple moves if it forms a mill and captures)
+// fallback for when workers arent available
+function doAiTurnFallback() {
   while (gameState.currentPlayer === 'black' && !gameState.winner) {
     var aiMove = null;
+    if (gameMode === 'easy') aiMove = Engine.selectMoveEasy(gameState);
+    else if (gameMode === 'medium') aiMove = Engine.selectMoveMedium(gameState);
+    else if (gameMode === 'hard') aiMove = Engine.selectMoveHard(gameState);
 
-    // pick the right AI based on game mode
-    if (gameMode === 'easy') {
-      aiMove = Engine.selectMoveEasy(gameState);
-    } else if (gameMode === 'medium') {
-      aiMove = Engine.selectMoveMedium(gameState);
-    } else if (gameMode === 'hard') {
-      aiMove = Engine.selectMoveHard(gameState);
-    }
-
-    // if AI has no moves, game should be over
     if (!aiMove) break;
-
     var result = Engine.applyMove(gameState, aiMove);
-    if (result.error) {
-      // this shouldn't happen if the engine is correct, but just in case
-      console.error('AI made invalid move:', aiMove, result.message);
-      break;
-    }
+    if (result.error) { console.error('AI error:', result.message); break; }
     gameState = result;
   }
-
   aiThinking = false;
   drawBoard();
   updateInfo();
@@ -525,6 +560,14 @@ function resetGame() {
   selectedNode = null;
   hoveredNode = null;
   aiThinking = false;
+
+  // hide the game-over modal if it exists
+  var endModal = document.getElementById('end-modal');
+  if (endModal) {
+    endModal.style.opacity = '0';
+    endModal.style.zIndex = '-1';
+  }
+
   drawBoard();
   updateInfo();
 }
