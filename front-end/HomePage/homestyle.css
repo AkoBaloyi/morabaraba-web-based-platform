@@ -255,7 +255,7 @@ a {
   box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
-.local-button {
+.side-buttons {
   display: block;
 
   border: solid;
@@ -282,42 +282,7 @@ a {
     box-shadow 0.15s;
 }
 
-.local-button:hover {
-  padding: 18px;
-
-  font-size: 18px;
-
-  box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
-}
-
-.online-button {
-  display: block;
-
-  border: solid;
-
-  padding: 10px;
-
-  font-family: Arial;
-
-  font-weight: bold;
-
-  font-size: 15px;
-
-  border-radius: 5px;
-
-  color: black;
-
-  background-color: rgb(191, 191, 191);
-
-  cursor: pointer;
-
-  transition:
-    padding 0.15s,
-    font-size 0.15s,
-    box-shadow 0.15s;
-}
-
-.online-button:hover {
+.side-buttons:hover {
   padding: 18px;
 
   font-size: 18px;
