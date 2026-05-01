@@ -335,6 +335,22 @@ a {
   gap: 30px;
 }
 
+.modal-inner-leader-board {
+  background-color: #3d5898;
+
+  border-radius: 15px;
+
+  padding: 15px 25px;
+
+  width: 600px;
+
+  height: 600px;
+
+  color: black;
+
+  gap: 30px;
+}
+
 .modal-headings {
   font-size: 50px;
 }
@@ -675,4 +691,74 @@ a {
 
 .close-btn:hover {
   background-color: rgb(128, 130, 128);
+}
+
+.leader-board{
+
+  display: flex;
+
+  flex-direction: column;
+
+  border-radius: 10px;
+
+  margin: 10px;
+
+  background-color: white;
+
+  height: 90%;
+
+  box-shadow: 0 5px 20px black;
+
+  overflow: hidden;
+  
+}
+
+.leader-board-header{
+
+  background-color: royalblue;
+
+  color: white;
+
+  text-align: center;
+
+  padding: 20px;
+
+  font-size: 1.5rem;
+
+  font-weight: 700;
+}
+
+table{
+
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+th, td{
+
+  padding: 10px;
+
+  text-align: center;
+
+  font-size: 1rem;
+}
+
+th{
+
+  background-color: rgb(226, 226, 226);
+
+  color: black;
+}
+
+tr:nth-child(even){
+
+  background-color: #f7f9fc;
+}
+
+.rank{
+
+  font-weight: bold;
+
+  color: royalblue;
 }

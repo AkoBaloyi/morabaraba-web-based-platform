@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // DOM Elements for game menu
   const openBtn = document.getElementById("local-button");
   const aiOpenBtn = document.getElementById("Play-with-AI");
+  const leaderBoardBtn = document.querySelector("#leader-board-button");
+  const leaderBoardModal = document.querySelector("#leader-board-modal");
+  const closeLeaderBoard = document.querySelector("#closeLeaderBoard");
   const onlineBtn = document.getElementById("online-button");
   const onlineMenuModal = document.getElementById("online-menu-modal");
   const createRoomBtn = document.getElementById("create-room-button");
@@ -52,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
     aiMenuModal.classList.remove("open");
     modal.classList.add("open");
   });
+
+  leaderBoardBtn.addEventListener("click", () => leaderBoardModal.classList.add("open"));
+  closeLeaderBoard.addEventListener("click", () => leaderBoardModal.classList.remove("open"));
 
   let socket = null;
   let currentRoomCode = null;
