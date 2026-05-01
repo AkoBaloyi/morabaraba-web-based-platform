@@ -108,13 +108,17 @@
         <div class="modal-inner">
           <button class="closeModal" id="closeModal">back</button>
 
-          <h2 class="modal-headings">Local Menu</h2>
+          <div class="modal-content">
 
-          <a href="../HumanVSHuman/interactive.html">
-            <button class="Play-with-firend">Play Friend</button>
-          </a>
+            <h2 class="modal-headings">Local Menu</h2>
 
-          <button class="Play-with-AI" id="Play-with-AI">Play AI</button>
+            <a href="../HumanVSHuman/interactive.html">
+              <button class="Play-with-firend">Play Friend</button>
+            </a>
+
+            <button class="Play-with-AI" id="Play-with-AI">Play AI</button>
+          </div>
+
         </div>
       </div>
 
@@ -122,24 +126,28 @@
         <div class="modal-inner">
           <button class="closeModal" id="closeOnlineMenuModal">back</button>
 
-          <h2 class="modal-headings">Online Menu</h2>
+          <div class="modal-content">
 
-          <button class="create-room-button" id="create-room-button">
-            Create Room
-          </button>
+            <h2 class="modal-headings">Online Menu</h2>
 
-          <button class="join-room-button" id="join-room-button">
-            Join Room
-          </button>
+            <button class="create-room-button" id="create-room-button">
+              Create Room
+            </button>
+
+            <button class="join-room-button" id="join-room-button">
+              Join Room
+            </button>
+
+          </div>
+
         </div>
       </div>
 
       <div class="modal" id="leader-board-modal">
         <div class="modal-inner-leader-board">
-          <div>
-            <button class="closeModal" id="closeLeaderBoard">back</button>
-          </div>
           
+            <button class="closeModal" id="closeLeaderBoard">back</button>
+                 
           <div class="leader-board">
 
             <div class="leader-board-header">🏆Players Leaderboard</div>
@@ -189,7 +197,7 @@
                 </tr>
 
                 <tr>
-                  <td class="rank">3</td>
+                  <td class="rank">4</td>
                   <td>KingHim</td>
                   <td>190</td>
                   <td>15</td>
@@ -223,27 +231,32 @@
         <div class="modal-inner">
           <button class="closeModal" id="closeLogInModal">back</button>
 
-          <h2>Login</h2>
+          <div class="modal-content">
 
-          <input
-            class="username-input"
-            type="text"
-            placeholder="Username"
-            required
-          />
+              <h2>Login</h2>
 
-          <input
-            class="password-input"
-            type="password"
-            placeholder="Password"
-            required
-          />
+            <input
+              class="username-input"
+              type="text"
+              placeholder="Username"
+              required
+            />
 
-          <button type="submit" class="inner-login-button">LOG IN</button>
+            <input
+              class="password-input"
+              type="password"
+              placeholder="Password"
+              required
+            />
 
-          <button class="create-account-button" id="sign-up-button">
-            Create Account
-          </button>
+            <button type="submit" class="inner-login-button">LOG IN</button>
+
+            <button class="create-account-button" id="sign-up-button">
+              Create Account
+            </button>
+
+          </div>
+          
         </div>
       </div>
 
@@ -251,30 +264,35 @@
         <div class="modal-inner">
           <button class="closeModal" id="closeSignUpModal">back</button>
 
-          <h2>Sign Up</h2>
+          <div class="modal-content">
 
-          <input
-            class="username-input"
-            type="text"
-            placeholder="Username"
-            required
-          />
+            <h2>Sign Up</h2>
 
-          <input
-            class="email-input"
-            type="email"
-            placeholder="Email"
-            required
-          />
+            <input
+              class="username-input"
+              type="text"
+              placeholder="Username"
+              required
+            />
 
-          <input
-            class="password-input"
-            type="password"
-            placeholder="Password"
-            required
-          />
+            <input
+              class="email-input"
+              type="email"
+              placeholder="Email"
+              required
+            />
 
-          <button type="submit" class="inner-signup-button">SIGN UP</button>
+            <input
+              class="password-input"
+              type="password"
+              placeholder="Password"
+              required
+            />
+
+            <button type="submit" class="inner-signup-button">SIGN UP</button>
+
+          </div>
+        
         </div>
       </div>
 
@@ -282,11 +300,18 @@
         <div class="modal-inner">
           <button class="closeModal" id="closeCreateRoomModal">back</button>
 
-          <h2 class="modal-headings">Created Room</h2>
-          <p class="room-code-text">Room Code :</p>
-          <div class="display">
-            <span class="code-display-text">CODE DISPLAY HERE</span>
+          <div class="modal-content">
+
+            <h2 class="modal-headings">Created Room</h2>
+
+            <p class="room-code-text">Room Code :</p>
+
+            <div class="display">
+              <span class="code-display-text">CODE DISPLAY HERE</span>
+            </div>
+
           </div>
+
         </div>
       </div>
 
@@ -294,30 +319,43 @@
         <div class="modal-inner">
           <button class="closeModal" id="closeJoinRoomModal">back</button>
 
-          <h2 class="modal-headings">Join Room</h2>
-          <p class="enter-code-text">Enter Code</p>
-          <input type="text" class="input-bar" required minlength="4" />
-          <button type="submit" class="join-button">Join</button>
+          <div class="modal-content">
+
+            <h2 class="modal-headings">Join Room</h2>
+
+            <p class="enter-code-text">Enter Code</p>
+
+            <input type="text" class="input-bar" required minlength="4" />
+
+            <button type="submit" class="join-button">Join</button>
+
+          </div>
+
         </div>
       </div>
 
       <div class="modal" id="ai-menu-modal">
         <div class="modal-inner">
           <button class="closeModal" id="closeAiMenuModal">back</button>
+          
+          <div class="modal-content">
 
-          <h2 class="modal-headings">AI Difficulty</h2>
+            <h2 class="modal-headings">AI Difficulty</h2>
 
-          <a href="../Easy AI/interactiveEasyAI.html">
-            <button class="ai-difficulty-button-1-3">Easy Mode</button>
-          </a>
+            <a href="../Easy AI/interactiveEasyAI.html">
+              <button class="ai-difficulty-button-1-3">Easy Mode</button>
+            </a>
 
-          <a href="../Medium AI/interactiveMediumAI.html">
-            <button class="ai-difficulty-button-2">Medium Mode</button>
-          </a>
+            <a href="../Medium AI/interactiveMediumAI.html">
+              <button class="ai-difficulty-button-2">Medium Mode</button>
+            </a>
 
-          <a href="../Hard AI/interactiveHardAI.html">
-            <button class="ai-difficulty-button-1-3">Hard Mode</button>
-          </a>
+            <a href="../Hard AI/interactiveHardAI.html">
+              <button class="ai-difficulty-button-1-3">Hard Mode</button>
+            </a>
+
+          </div>
+          
         </div>
       </div>
     </main>

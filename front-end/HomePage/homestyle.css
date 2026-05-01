@@ -136,6 +136,7 @@ body {
 
 a {
   text-decoration: none;
+  
   color: inherit;
 }
 .display {
@@ -318,6 +319,16 @@ a {
 
   padding: 15px 25px;
 
+  width: 500px;
+
+  height: 500px;
+
+  color: black;
+
+}
+
+.modal-content{
+
   display: flex;
 
   flex-direction: column;
@@ -326,13 +337,9 @@ a {
 
   justify-content: center;
 
-  width: 500px;
-
-  height: 500px;
-
-  color: black;
-
   gap: 30px;
+
+  height: 90%;
 }
 
 .modal-inner-leader-board {
