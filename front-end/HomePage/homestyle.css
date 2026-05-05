@@ -13,6 +13,10 @@ body {
 
   background-color: #1e2a3a;
 
+  font-family:
+    "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans",
+    Arial, sans-serif;
+
   display: grid;
   grid-template-rows: 90px 1fr; /*creates 3 row*/
   grid-template-columns: 240px 1fr; /*creares 2 columbs*/
@@ -53,7 +57,7 @@ body {
 
   padding: 20px;
 
-  border-right: 5px solid black;
+  border-right: 3px solid black;
 
   overflow-y: auto;
 
@@ -136,7 +140,7 @@ body {
 
 a {
   text-decoration: none;
-  
+
   color: inherit;
 }
 .display {
@@ -324,11 +328,9 @@ a {
   height: 500px;
 
   color: black;
-
 }
 
-.modal-content-position{
-
+.modal-content-position {
   display: flex;
 
   flex-direction: column;
@@ -700,8 +702,7 @@ a {
   background-color: rgb(128, 130, 128);
 }
 
-.leader-board{
-
+.leader-board {
   display: flex;
 
   flex-direction: column;
@@ -717,11 +718,9 @@ a {
   box-shadow: 0 5px 20px black;
 
   overflow: hidden;
-  
 }
 
-.leader-board-header{
-
+.leader-board-header {
   background-color: royalblue;
 
   color: white;
@@ -735,15 +734,14 @@ a {
   font-weight: 700;
 }
 
-table{
-
+table {
   width: 100%;
 
   border-collapse: collapse;
 }
 
-th, td{
-
+th,
+td {
   padding: 10px;
 
   text-align: center;
@@ -751,20 +749,17 @@ th, td{
   font-size: 1rem;
 }
 
-th{
-
+th {
   background-color: rgb(226, 226, 226);
 
   color: black;
 }
 
-tr:nth-child(even){
-
+tr:nth-child(even) {
   background-color: #f7f9fc;
 }
 
-.rank{
-
+.rank {
   font-weight: bold;
 
   color: royalblue;
