@@ -27,17 +27,23 @@ const allowedOrigins = [
   "http://127.0.0.1:5500",
 ];
 
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//   }),
+// );
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "*",
   }),
 );
+
 app.use(express.json());
 
 // use the proper auth routes that actually check the database
@@ -161,6 +167,80 @@ io.use((socket, next) => {
     socket.user = null;
   }
   next();
+});
+
+// Leaderboard endpoint - get all registered users who have played online games
+app.get("/api/leaderboard", (req, res) => {
+  const db = getDB();
+
+  db.all(
+    `
+    SELECT 
+      username,
+      elo,
+      total_games,
+      wins,
+      losses,
+      draws,
+      RANK() OVER (ORDER BY elo DESC) as rank
+    FROM users 
+    WHERE total_games > 0
+    ORDER BY elo DESC
+  `,
+    (err, rows) => {
+      if (err) {
+        console.error("Leaderboard error:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      res.json({
+        success: true,
+        data: rows.map((row) => ({
+          rank: row.rank,
+          username: row.username,
+          elo: row.elo,
+          totalGames: row.total_games,
+          wins: row.wins,
+          losses: row.losses,
+          draws: row.draws,
+        })),
+      });
+    },
+  );
+});
+
+// Get opponent history for a specific user (players they've played with)
+app.get("/api/players-played/:username", (req, res) => {
+  const { username } = req.params;
+  const db = getDB();
+
+  db.all(
+    `
+    SELECT DISTINCT u.username, u.elo, u.wins, u.losses, u.draws, u.total_games
+    FROM users u
+    WHERE u.id IN (
+      SELECT DISTINCT 
+        CASE 
+          WHEN g.player1_id = (SELECT id FROM users WHERE username = ?) THEN g.player2_id
+          WHEN g.player2_id = (SELECT id FROM users WHERE username = ?) THEN g.player1_id
+        END
+      FROM games g
+      WHERE g.status = 'completed' 
+      AND (g.player1_id = (SELECT id FROM users WHERE username = ?) 
+           OR g.player2_id = (SELECT id FROM users WHERE username = ?))
+    )
+    ORDER BY u.elo DESC
+  `,
+    [username, username, username, username],
+    (err, rows) => {
+      if (err) {
+        console.error("Players played error:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      res.json({ success: true, data: rows });
+    },
+  );
 });
 
 io.on("connection", (socket) => {
@@ -403,6 +483,7 @@ io.on("connection", (socket) => {
         db,
         winnerPlayer?.username,
         loserPlayer?.username,
+        false,
         function (eloResult) {
           io.to(roomCode).emit("game-over", {
             winner: winnerPlayer?.username,
