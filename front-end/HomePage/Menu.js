@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // DOM Elements for game menu
   const openBtn = document.getElementById("local-button");
   const aiOpenBtn = document.getElementById("Play-with-AI");
+  const leaderBoardBtn = document.querySelector("#leader-board-button");
+  const leaderBoardModal = document.querySelector("#leader-board-modal");
+  const closeLeaderBoard = document.querySelector("#closeLeaderBoard");
   const onlineBtn = document.getElementById("online-button");
   const onlineMenuModal = document.getElementById("online-menu-modal");
   const createRoomBtn = document.getElementById("create-room-button");
@@ -52,6 +55,13 @@ document.addEventListener("DOMContentLoaded", () => {
     aiMenuModal.classList.remove("open");
     modal.classList.add("open");
   });
+
+  leaderBoardBtn.addEventListener("click", () =>
+    leaderBoardModal.classList.add("open"),
+  );
+  closeLeaderBoard.addEventListener("click", () =>
+    leaderBoardModal.classList.remove("open"),
+  );
 
   let socket = null;
   let currentRoomCode = null;
@@ -143,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     notif.style.padding = "10px";
     notif.style.borderRadius = "5px";
     notif.style.zIndex = "9999";
+    notif.style.fontFamily = " Arial, Helvetica";
     notif.style.whiteSpace = "nowrap";
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 3000);
@@ -294,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       // User not logged in, show login modal
       console.log("User not logged in, showing login modal");
-      showNotification("Log-in/sign-up to play online", "#000080");
+      showNotification("Log-in or sign-up to play online", "#000080");
       logInModal.classList.add("open");
     }
   }
@@ -481,6 +492,72 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeOnlineBtn) {
     closeOnlineBtn.onclick = () => onlineMenuModal.classList.remove("open");
   }
+
+  // Fetch and display leaderboard data
+  async function loadLeaderboard() {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("http://localhost:3000/api/leaderboard", {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data.length > 0) {
+        const tbody = document.querySelector("#leader-board-modal tbody");
+        tbody.innerHTML = ""; // clear hardcoded rows
+
+        result.data.forEach((player) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td class="rank">${player.rank}</td>
+          <td>${escapeHtml(player.username)}</td>
+          <td>${player.elo}</td>
+          <td>${player.totalGames || 0}</td>
+          <td>${player.wins || 0}</td>
+          <td>${player.losses || 0}</td>
+          <td>${player.draws || 0}</td>
+        `;
+          tbody.appendChild(row);
+        });
+      } else {
+        // Show empty state if no data
+        const tbody = document.querySelector("#leader-board-modal tbody");
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No online games played yet</td></tr>`;
+      }
+    } catch (error) {
+      console.error("Error loading leaderboard:", error);
+    }
+  }
+
+  // Helper function to prevent XSS attacks
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // Call this when opening the leaderboard modal
+  document
+    .getElementById("leader-board-modal")
+    .addEventListener("open", loadLeaderboard);
+
+  // Or call it when clicking a button that shows the leaderboard
+
+  document
+    .getElementById("leader-board-button")
+    .addEventListener("click", () => {
+      loadLeaderboard();
+      document.getElementById("leader-board-modal").classList.add("open");
+    });
 
   // Initialize
   checkExistingSession();
