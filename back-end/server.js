@@ -149,6 +149,52 @@ function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
+var MOVE_TIME_LIMIT = 60; // seconds per move
+
+// starts or resets the move timer for a room
+// if the current player doesn't move in time, they lose
+function startMoveTimer(roomCode) {
+  var room = rooms.get(roomCode);
+  if (!room || room.status !== "playing" || room.gameState.winner) return;
+
+  // clear any existing timer
+  if (room.moveTimer) clearTimeout(room.moveTimer);
+
+  // tell both players the timer started
+  io.to(roomCode).emit("timer-start", { seconds: MOVE_TIME_LIMIT });
+
+  room.moveTimer = setTimeout(function() {
+    var r = rooms.get(roomCode);
+    if (!r || r.status !== "playing" || r.gameState.winner) return;
+
+    // current player ran out of time
+    var loserColor = r.gameState.currentPlayer;
+    var loserNum = loserColor === "white" ? 1 : 2;
+    var loser = r.players.find(function(p) { return p.playerNumber === loserNum; });
+    var winner = r.players.find(function(p) { return p.playerNumber !== loserNum; });
+
+    console.log(loser?.username + " ran out of time. " + winner?.username + " wins.");
+
+    var db = getDB();
+    db.run(
+      `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
+       VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
+      [roomCode, r.players[0]?.username, r.players[1]?.username, winner?.username]
+    );
+
+    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
+      io.to(roomCode).emit("game-over", {
+        winner: winner?.username,
+        reason: "time_expired",
+        elo: eloResult
+      });
+    });
+
+    r.status = "finished";
+    setTimeout(function() { rooms.delete(roomCode); }, 5000);
+  }, MOVE_TIME_LIMIT * 1000);
+}
+
 // socket auth middleware - tries to verify token if provided
 // guests can still connect but wont have a verified username
 io.use((socket, next) => {
@@ -251,6 +297,10 @@ io.on("connection", (socket) => {
   let playerName = null;
 
   socket.on("create-room", ({ username }) => {
+    if (!username || typeof username !== 'string' || username.length > 30) {
+      socket.emit("error", "Invalid username");
+      return;
+    }
     const code = generateRoomCode();
     playerName = username;
     currentRoom = code;
@@ -271,6 +321,7 @@ io.on("connection", (socket) => {
       gameState: gameState,
       status: "waiting",
       createdAt: Date.now(),
+      moveTimer: null,  // will hold the timeout for the current move
     });
 
     socket.join(code);
@@ -279,6 +330,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join-room", ({ roomCode, username }) => {
+    if (!roomCode || typeof roomCode !== 'string' || !username || typeof username !== 'string') {
+      socket.emit("error", "Invalid room code or username");
+      return;
+    }
     console.log(`\nJoin request: ${username} to room ${roomCode}`);
     const room = rooms.get(roomCode);
 
@@ -331,10 +386,23 @@ io.on("connection", (socket) => {
         roomCode: roomCode,
         players: room.players.map((p) => p.username),
       });
+
+      // start the move timer for the first player
+      startMoveTimer(roomCode);
     }
   });
 
   socket.on("game-move", ({ roomCode, move }) => {
+    // validate inputs before doing anything
+    if (!roomCode || typeof roomCode !== 'string') {
+      socket.emit("error", "Invalid room code");
+      return;
+    }
+    if (!move || typeof move !== 'object') {
+      socket.emit("error", "Invalid move data");
+      return;
+    }
+
     console.log(`\nMOVE RECEIVED in ${roomCode}`);
     console.log(`  Move: ${JSON.stringify(move)}`);
     console.log(`  From socket: ${socket.id}`);
@@ -467,6 +535,13 @@ io.on("connection", (socket) => {
     // Send full game controller state to BOTH players
     io.to(roomCode).emit("game-controller-state", controllerState);
 
+    // reset the move timer for the next player
+    if (!room.gameState.winner) {
+      startMoveTimer(roomCode);
+    } else if (room.moveTimer) {
+      clearTimeout(room.moveTimer);
+    }
+
     // Check winner
     if (room.gameState.winner) {
       const winnerPlayer = room.players.find(
@@ -477,8 +552,19 @@ io.on("connection", (socket) => {
       const loserPlayer = room.players.find((p) => p !== winnerPlayer);
       console.log(`  GAME OVER - Winner: ${winnerPlayer?.username}`);
 
-      // update elo ratings for logged-in players
+      // save game to database
       const db = getDB();
+      db.run(
+        `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
+         VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
+        [roomCode, room.players[0]?.username, room.players[1]?.username, winnerPlayer?.username],
+        function(err) {
+          if (err) console.log("Could not save game history:", err.message);
+          else console.log("  Game saved to history (id: " + this.lastID + ")");
+        }
+      );
+
+      // update elo ratings for logged-in players
       updateEloAfterGame(
         db,
         winnerPlayer?.username,
@@ -536,6 +622,40 @@ io.on("connection", (socket) => {
     }
   });
 
+  // player resigns - end the game, award win to opponent
+  socket.on("resign", ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.status !== "playing") return;
+
+    const player = room.players.find((p) => p.socketId === socket.id);
+    if (!player) return;
+
+    const loser = player;
+    const winner = room.players.find((p) => p !== loser);
+    console.log(`\n${loser.username} resigned in room ${roomCode}`);
+
+    // update elo
+    const db = getDB();
+    db.run(
+      `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
+       VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
+      [roomCode, room.players[0]?.username, room.players[1]?.username, winner?.username]
+    );
+
+    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
+      io.to(roomCode).emit("game-over", {
+        winner: winner?.username,
+        reason: "opponent_resigned",
+        elo: eloResult
+      });
+    });
+
+    // mark room as done
+    room.status = "finished";
+    // clean up room after a short delay
+    setTimeout(() => { rooms.delete(roomCode); }, 5000);
+  });
+
   socket.on("disconnect", () => {
     console.log(`\nClient disconnected: ${socket.id}`);
 
@@ -551,6 +671,35 @@ io.on("connection", (socket) => {
           socket.to(currentRoom).emit("opponent-disconnected", {
             message: `${player.username} disconnected. Waiting for reconnect...`,
           });
+
+          // if game is already finished, clean up immediately
+          if (room.status === "finished") {
+            const allGone = room.players.every((p) => !p.connected);
+            if (allGone) rooms.delete(currentRoom);
+          }
+
+          // if game was in progress and opponent disconnects for 30s, award win
+          if (room.status === "playing") {
+            setTimeout(() => {
+              const r = rooms.get(currentRoom);
+              if (r && !player.connected && r.status === "playing") {
+                const winner = r.players.find((p) => p.connected);
+                if (winner) {
+                  console.log(`${player.username} timed out, ${winner.username} wins by disconnect`);
+                  const db = getDB();
+                  updateEloAfterGame(db, winner.username, player.username, function(eloResult) {
+                    io.to(currentRoom).emit("game-over", {
+                      winner: winner.username,
+                      reason: "opponent_disconnected",
+                      elo: eloResult
+                    });
+                  });
+                  r.status = "finished";
+                  setTimeout(() => { rooms.delete(currentRoom); }, 5000);
+                }
+              }
+            }, 30000); // 30 second timeout
+          }
         }
       }
     }

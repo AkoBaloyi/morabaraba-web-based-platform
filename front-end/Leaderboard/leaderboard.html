@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morabaraba - Leaderboard</title>
+    <link rel="stylesheet" href="../HumanVSHuman/style.css">
+    <style>
+        .leaderboard-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .leaderboard-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 10px 15px;
+            text-align: left;
+            border-bottom: 1px solid #555;
+        }
+        .leaderboard-table th {
+            background-color: #444;
+            font-size: 14px;
+        }
+        .leaderboard-table tr:hover {
+            background-color: #555;
+        }
+        .rank-1 { color: gold; font-weight: bold; }
+        .rank-2 { color: silver; font-weight: bold; }
+        .rank-3 { color: #cd7f32; font-weight: bold; }
+        .loading { color: #aaa; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="game-container leaderboard-container">
+        <h1 class="leaderboard-title">Leaderboard</h1>
+        <p class="loading" id="loadingText">Loading rankings...</p>
+        <table class="leaderboard-table" id="leaderboardTable" style="display:none;">
+            <thead>
+                <tr><th>#</th><th>Player</th><th>Elo</th></tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
+        <div class="reset-button-container">
+            <a href="../HomePage/index.html"><button class="reset-button">Back to Menu</button></a>
+        </div>
+    </div>
+
+    <script>
+        // fetch leaderboard from the server
+        fetch("http://localhost:3000/leaderboard")
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                var body = document.getElementById("leaderboardBody");
+                var table = document.getElementById("leaderboardTable");
+                var loading = document.getElementById("loadingText");
+
+                if (!data || data.length === 0) {
+                    loading.textContent = "No ranked players yet. Play some online games!";
+                    return;
+                }
+
+                loading.style.display = "none";
+                table.style.display = "table";
+
+                for (var i = 0; i < data.length; i++) {
+                    var row = document.createElement("tr");
+                    var rankClass = i < 3 ? "rank-" + (i + 1) : "";
+                    row.innerHTML = '<td class="' + rankClass + '">' + (i + 1) + '</td>' +
+                        '<td>' + data[i].username + '</td>' +
+                        '<td>' + data[i].elo + '</td>';
+                    body.appendChild(row);
+                }
+            })
+            .catch(function(err) {
+                document.getElementById("loadingText").textContent = "Could not load leaderboard. Is the server running?";
+            });
+    </script>
+</body>
+</html>

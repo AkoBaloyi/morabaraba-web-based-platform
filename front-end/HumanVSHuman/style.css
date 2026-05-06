@@ -78,6 +78,8 @@ body {
   margin: 0;
   cursor: pointer;
   box-shadow: 0 0 20px black;
+  max-width: 100%;
+  height: auto;
 }
 
 .game-container {

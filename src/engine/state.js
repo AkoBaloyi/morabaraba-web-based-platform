@@ -54,7 +54,13 @@ function createGame(variantName) {
     winReason: null,
     
     // which variant we're playing
-    variant: variantName
+    variant: variantName,
+
+    // move counter (increments after each full turn, used for draw detection)
+    moveCount: 0,
+
+    // moves since last capture (for 50-move draw rule)
+    movesSinceCapture: 0
   };
 }
 

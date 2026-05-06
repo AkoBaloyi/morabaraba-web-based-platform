@@ -140,6 +140,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return token && token !== "null" && username && username !== "null";
   }
 
+  // fetch the player's elo and show it next to their name
+  function fetchAndShowElo() {
+    var token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("http://localhost:3000/profile", {
+      headers: { Authorization: "Bearer " + token }
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.elo) {
+          playerDisplay.textContent = playerUsername + " (Elo: " + data.elo + ")";
+        }
+      })
+      .catch(function() { /* server not running, ignore */ });
+  }
+
   // Show notification helper
   function showNotification(message, color) {
     const notif = document.createElement("div");
@@ -234,6 +250,9 @@ document.addEventListener("DOMContentLoaded", () => {
         logInModal.classList.remove("open");
         playerDisplay.textContent = `${username}`;
 
+        // fetch and show elo rating
+        fetchAndShowElo();
+
         // Update UI buttons
         updateAuthUI();
 
@@ -326,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Restored session for:", playerUsername);
       showNotification(`Welcome back, ${playerUsername}!`, "#4CAF50");
       if (playerDisplay) playerDisplay.textContent = `${playerUsername}`;
+      fetchAndShowElo();
     } else {
       // Guest mode
       playerUsername = "Guest_" + Math.floor(Math.random() * 1000);
@@ -498,7 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:3000/api/leaderboard", {
+      const response = await fetch("http://localhost:3000/leaderboard", {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
           "Content-Type": "application/json",

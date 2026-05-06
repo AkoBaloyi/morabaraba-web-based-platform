@@ -27,12 +27,26 @@ router.get("/profile", verifyToken, (req, res) => {
 // leaderboard - top 20 players by elo
 router.get("/leaderboard", (req, res) => {
   const db = getDB();
+  // count wins and losses from the games table
   db.all(
-    "SELECT username, elo FROM users ORDER BY elo DESC LIMIT 20",
+    `SELECT u.username, u.elo,
+      (SELECT COUNT(*) FROM games g WHERE g.winner_id = u.id AND g.status = 'completed') as wins,
+      (SELECT COUNT(*) FROM games g WHERE (g.player1_id = u.id OR g.player2_id = u.id) AND g.winner_id != u.id AND g.status = 'completed') as losses,
+      (SELECT COUNT(*) FROM games g WHERE (g.player1_id = u.id OR g.player2_id = u.id) AND g.status = 'completed') as totalGames
+    FROM users u ORDER BY u.elo DESC LIMIT 20`,
     [],
     (err, rows) => {
-      if (err) return res.status(500).json({ error: "Database error" });
-      res.json(rows || []);
+      if (err) return res.status(500).json({ success: false, error: "Database error" });
+      const data = (rows || []).map((row, i) => ({
+        rank: i + 1,
+        username: row.username,
+        elo: row.elo,
+        totalGames: row.totalGames || "-",
+        wins: row.wins || "-",
+        losses: row.losses || "-",
+        draws: "-"
+      }));
+      res.json({ success: true, data: data });
     },
   );
 });

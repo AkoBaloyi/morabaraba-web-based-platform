@@ -9,6 +9,12 @@
   </head>
   <body>
     <div class="game-container">
+
+      <!-- Room code display -->
+      <div class="status-bar" style="font-size:12px; color:#aaa; margin-bottom:5px;">
+        Room: <span id="roomCodeDisplay">---</span> | Time: <span id="moveTimer" style="color:#fff; font-weight:bold;">60</span>s
+      </div>
+
       <div class="info-bar">
         <div class="player-info" id="player1info">
           <span id="player1text">Player 1 (Dark)</span>:
@@ -28,6 +34,18 @@
         <span id="phaseText">Phase: Placement</span>
       </div>
 
+      <!-- Game over modal -->
+      <div class="modal" id="end-modal">
+        <div class="end-modal-inner">
+          <span class="end-stat" id="endStatText">Game Over</span>
+          <span class="rating-text" id="eloChangeText"></span>
+          <div class="reset-button-container">
+            <button class="reset-button" id="rematchBtn">New Game</button>
+            <a href="../HomePage/index.html"><button class="reset-button">Back to Menu</button></a>
+          </div>
+        </div>
+      </div>
+
       <canvas
         id="myCanvas"
         width="600"
@@ -36,14 +54,13 @@
       ></canvas>
 
       <div class="reset-button-container">
-        <button class="reset-button" onclick="resetGame()">Reset Board</button>
+        <button class="reset-button" id="resignBtn">Resign</button>
         <a href="../HomePage/index.html"
           ><button class="reset-button">Back to Menu</button></a
         >
       </div>
     </div>
 
-    <!-- load the online board script  -->
     <script src="./online-board.js" defer></script>
   </body>
 </html>

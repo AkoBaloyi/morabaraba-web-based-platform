@@ -133,6 +133,8 @@
       winner: null,
       winReason: null,
       variant: variantName,
+      moveCount: 0,
+      movesSinceCapture: 0,
     };
   }
 
@@ -369,6 +371,8 @@
       winner: state.winner,
       winReason: state.winReason,
       variant: state.variant,
+      moveCount: state.moveCount || 0,
+      movesSinceCapture: state.movesSinceCapture || 0,
     };
   }
 
@@ -405,6 +409,9 @@
       ns.capturePending += newMills.length;
     } else {
       ns.currentPlayer = getOpponent(cp);
+      ns.moveCount++;
+      ns.movesSinceCapture++;
+      if (ns.movesSinceCapture >= 50) { ns.winner = 'draw'; ns.winReason = 'fifty_move_rule'; return ns; }
       var win = checkWinCondition(ns);
       if (win) {
         ns.winner = win.winner;
@@ -446,6 +453,9 @@
       ns.capturePending += newMills.length;
     } else {
       ns.currentPlayer = getOpponent(cp);
+      ns.moveCount++;
+      ns.movesSinceCapture++;
+      if (ns.movesSinceCapture >= 50) { ns.winner = 'draw'; ns.winReason = 'fifty_move_rule'; return ns; }
       var win = checkWinCondition(ns);
       if (win) {
         ns.winner = win.winner;
@@ -473,6 +483,7 @@
     ns.nodes[targetNode] = null;
     ns.capturePending--;
     ns.cowsCaptured[cp]++;
+    ns.movesSinceCapture = 0;
     ns.mills = getMills(ns);
     var oppOnBoard = countCowsOnBoard(ns, opp);
     var oppToPlace = ns.cowsToPlace[opp];
