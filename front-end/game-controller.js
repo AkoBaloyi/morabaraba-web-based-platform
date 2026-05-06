@@ -380,7 +380,7 @@ function updateInfo() {
     statusText.textContent = '⚡ MILL! ' + currentName + ' - Capture a cow!';
     statusText.style.color = '#ff6666';
   } else if (aiThinking) {
-    statusText.textContent = 'AI is thinking...';
+    statusText.innerHTML = 'AI is thinking<span class="thinking-dots"></span>';
     statusText.style.color = '#aaaaff';
   } else {
     statusText.textContent = currentName + "'s turn";
