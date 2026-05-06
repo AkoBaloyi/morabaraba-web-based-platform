@@ -63,11 +63,54 @@ var NODE_POSITIONS = [
 // GAME STATE - The engine state is the single source of truth
 // ============================================================
 
-var gameState = Engine.createGame('12-cow');
+// reads the variant from the dropdown if it exists, defaults to 12-cow
+function getSelectedVariant() {
+  var sel = document.getElementById('variantSelect');
+  return sel ? sel.value : '12-cow';
+}
+
+var gameState = Engine.createGame(getSelectedVariant());
+
+// store previous state for undo (one level only)
+var previousState = null;
 
 // selectedNode is used during movement/flying phase - the player
 // clicks a cow first (selects it), then clicks where to move it
 var selectedNode = null;
+
+// tracks the last node that was played (for yellow highlight)
+var lastMoveNode = null;
+
+// simple move sound using Web Audio API (no external files needed)
+var audioCtx = null;
+function playMoveSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 600;
+    gain.gain.value = 0.1;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.stop(audioCtx.currentTime + 0.1);
+  } catch(e) {} // ignore if audio not available
+}
+function playCaptureSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 300;
+    gain.gain.value = 0.15;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.stop(audioCtx.currentTime + 0.2);
+  } catch(e) {}
+}
 
 // hoveredNode tracks which node the mouse is near (for hover effect)
 var hoveredNode = null;
@@ -282,6 +325,16 @@ function drawBoard() {
       ctx.stroke();
     }
   }
+
+  // last move highlight - yellow ring shows what just happened
+  if (lastMoveNode !== null && lastMoveNode >= 0) {
+    var lmPos = NODE_POSITIONS[lastMoveNode];
+    ctx.beginPath();
+    ctx.arc(lmPos.x, lmPos.y, 20, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(255, 200, 0, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
 }
 
 // ============================================================
@@ -299,25 +352,35 @@ function updateInfo() {
 
   // status message
   if (gameState.winner) {
-    var winnerName = gameState.winner === 'white' ? p1Name : p2Name;
-    var reason = gameState.winReason === 'opponent_below_three'
-      ? 'Opponent has fewer than 3 cows' : 'Opponent has no legal moves';
-    statusText.textContent = winnerName + ' wins! (' + reason + ')';
+    var winnerName;
+    var reason;
+    if (gameState.winner === 'draw') {
+      winnerName = 'Draw';
+      reason = '50 moves without a capture';
+      statusText.textContent = 'Draw! (' + reason + ')';
+    } else {
+      winnerName = gameState.winner === 'white' ? p1Name : p2Name;
+      reason = gameState.winReason === 'opponent_below_three'
+        ? 'Opponent has fewer than 3 cows' : 'Opponent has no legal moves';
+      statusText.textContent = winnerName + ' wins! (' + reason + ')';
+    }
     statusText.style.color = '#ffcc00';
 
     // show the game-over modal if it exists in the HTML
     var endModal = document.getElementById('end-modal');
     if (endModal) {
       var endStat = endModal.querySelector('.end-stat');
-      if (endStat) endStat.textContent = winnerName + ' Wins!';
+      if (endStat) endStat.textContent = gameState.winner === 'draw' ? 'Draw!' : winnerName + ' Wins!';
+      var ratingText = endModal.querySelector('.rating-text');
+      if (ratingText) ratingText.textContent = reason;
       endModal.style.opacity = '1';
       endModal.style.zIndex = '1000';
     }
   } else if (gameState.capturePending > 0) {
-    statusText.textContent = currentName + ' - Capture an opponent cow! (click a red-highlighted cow)';
+    statusText.textContent = '⚡ MILL! ' + currentName + ' - Capture a cow!';
     statusText.style.color = '#ff6666';
   } else if (aiThinking) {
-    statusText.textContent = 'AI is thinking...';
+    statusText.innerHTML = 'AI is thinking<span class="thinking-dots"></span>';
     statusText.style.color = '#aaaaff';
   } else {
     statusText.textContent = currentName + "'s turn";
@@ -385,8 +448,11 @@ function handleClick(event) {
       target: nodeId
     });
     if (!result.error) {
+      previousState = gameState;
       gameState = result;
+      lastMoveNode = nodeId;
       selectedNode = null;
+      playCaptureSound();
       afterHumanMove();
     }
     // if it was an error (clicked wrong cow), just ignore - the red highlights show valid targets
@@ -403,7 +469,10 @@ function handleClick(event) {
       node: nodeId
     });
     if (!result.error) {
+      previousState = gameState;
       gameState = result;
+      lastMoveNode = nodeId;
+      playMoveSound();
       afterHumanMove();
     }
     drawBoard();
@@ -437,7 +506,10 @@ function handleClick(event) {
           to: nodeId
         });
         if (!result.error) {
+          previousState = gameState;
           gameState = result;
+          lastMoveNode = nodeId;
+          playMoveSound();
           selectedNode = null;
           afterHumanMove();
         }
@@ -476,10 +548,18 @@ try {
       return;
     }
     gameState = result;
+    // track where the AI moved for the yellow highlight
+    if (move.type === 'placement') lastMoveNode = move.node;
+    else if (move.type === 'slide') lastMoveNode = move.to;
+    else if (move.type === 'capture') lastMoveNode = move.target;
+    playMoveSound();
 
     // if its still the AI's turn (capture after mill), ask for another move
     if (gameState.currentPlayer === 'black' && !gameState.winner) {
-      aiWorker.postMessage({ state: gameState, difficulty: gameMode });
+      // small delay so the player can see the mill before capture
+      setTimeout(function() {
+        aiWorker.postMessage({ state: gameState, difficulty: gameMode });
+      }, 500);
     } else {
       aiThinking = false;
       drawBoard();
@@ -526,7 +606,11 @@ function doAiTurnFallback() {
     var result = Engine.applyMove(gameState, aiMove);
     if (result.error) { console.error('AI error:', result.message); break; }
     gameState = result;
+    if (aiMove.type === 'placement') lastMoveNode = aiMove.node;
+    else if (aiMove.type === 'slide') lastMoveNode = aiMove.to;
+    else if (aiMove.type === 'capture') lastMoveNode = aiMove.target;
   }
+  playMoveSound();
   aiThinking = false;
   drawBoard();
   updateInfo();
@@ -556,9 +640,15 @@ function handleMouseLeave() {
 // ============================================================
 
 function resetGame() {
-  gameState = Engine.createGame('12-cow');
+  // if game is in progress, confirm before resetting
+  if (gameState.moveCount > 0 && !gameState.winner) {
+    if (!confirm("Reset the current game?")) return;
+  }
+  gameState = Engine.createGame(getSelectedVariant());
   selectedNode = null;
   hoveredNode = null;
+  lastMoveNode = null;
+  previousState = null;
   aiThinking = false;
 
   // hide the game-over modal if it exists
@@ -568,6 +658,18 @@ function resetGame() {
     endModal.style.zIndex = '-1';
   }
 
+  drawBoard();
+  updateInfo();
+}
+
+// undo last move (local play only, one level)
+function undoMove() {
+  if (gameMode !== 'human') return; // no undo in AI mode
+  if (!previousState) return;
+  gameState = previousState;
+  previousState = null;
+  selectedNode = null;
+  lastMoveNode = null;
   drawBoard();
   updateInfo();
 }

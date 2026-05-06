@@ -55,6 +55,12 @@
       ></canvas>
 
       <div class="reset-button-container">
+        <select id="variantSelect" onchange="resetGame()" class="reset-button">
+          <option value="12-cow">12 Cow (Standard)</option>
+          <option value="9-cow">9 Cow (Nine Men's Morris)</option>
+          <option value="6-cow">6 Cow (Six Men's Morris)</option>
+        </select>
+        <button class="reset-button" onclick="undoMove()">Undo</button>
         <button class="reset-button" onclick="resetGame()">Reset Board</button>
         <a href="../HomePage/index.html"
           ><button class="reset-button">Back to Menu</button></a

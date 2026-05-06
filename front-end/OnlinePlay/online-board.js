@@ -34,10 +34,12 @@ let myPlayerNumber = null; // 1 = Black, 2 = White
 let gameReady = false;
 
 // these get updated by the server's game-controller-state event
-let serverGameState = null;  // the full engine state from the server
-let captureTargets = [];     // node IDs we can capture (highlighted red)
-let capturePending = 0;      // how many captures we need to do
-let selectedNode = null;     // for movement phase - which cow we picked up
+let serverGameState = null;
+let captureTargets = [];
+let capturePending = 0;
+let selectedNode = null;
+let lastMoveNode = null;      // highlights the last move
+let prevCapturePending = 0;   // to detect when a mill is formed
 
 // ==========================================
 // BOARD SETUP
@@ -326,6 +328,16 @@ function drawBoard() {
     ctx.lineWidth = 3;
     ctx.stroke();
   }
+
+  // highlight last move in yellow
+  if (lastMoveNode !== null && lastMoveNode >= 0) {
+    const pos = NODE_POSITIONS[lastMoveNode];
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 20, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(255, 200, 0, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
 }
 
 // Find closest intersection
@@ -391,6 +403,7 @@ function placePiece(event) {
         roomCode: roomCode,
         move: { capture: nodeId },
       });
+      lastMoveNode = nodeId;
     } else {
       updateStatus("Click a red-highlighted cow to capture!", "#ff6666");
     }
@@ -413,6 +426,7 @@ function placePiece(event) {
       roomCode: roomCode,
       move: { x: NODE_POSITIONS[nodeId].x, y: NODE_POSITIONS[nodeId].y },
     });
+    lastMoveNode = nodeId;
     return;
   }
 
@@ -444,6 +458,7 @@ function placePiece(event) {
         roomCode: roomCode,
         move: { from: selectedNode, to: nodeId },
       });
+      lastMoveNode = nodeId;
       selectedNode = null;
     }
     return;
@@ -522,8 +537,16 @@ socket.on("player-assignment", (data) => {
 });
 
 socket.on("opponent-move", (data) => {
-  // we dont need to do anything here anymore
-  // game-controller-state handles the full board update
+  // play a sound when opponent moves
+  try {
+    var ac = new (window.AudioContext || window.webkitAudioContext)();
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.frequency.value = 500; g.gain.value = 0.08;
+    o.start(); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.08);
+    o.stop(ac.currentTime + 0.08);
+  } catch(e) {}
   console.log("Opponent move received (waiting for state update)");
 });
 
@@ -543,8 +566,26 @@ socket.on("game-controller-state", (data) => {
   // store the full state so the click handler can use it
   serverGameState = gs;
   captureTargets = data.captureTargets || [];
+  prevCapturePending = capturePending;
   capturePending = data.capturePending || 0;
-  selectedNode = null; // reset selection when state changes
+  selectedNode = null;
+
+  // detect mill formed (capture went from 0 to >0)
+  if (capturePending > 0 && prevCapturePending === 0) {
+    updateStatus("⚡ MILL FORMED! ⚡", "#ffcc00");
+    // flash it briefly then update to the real status
+    setTimeout(function() {
+      if (currentPlayer === myPlayerNumber) {
+        updateStatus("Your turn - capture an opponent's cow!", "#ff6666");
+      }
+    }, 1200);
+  }
+
+  // update phase text
+  var phaseText = document.getElementById("phaseText");
+  if (phaseText && data.phaseLabel) {
+    phaseText.textContent = "Phase: " + data.phaseLabel;
+  }
 
   // rebuild piece arrays from the engine's nodes array
   occupiedPointsP1 = [];
@@ -595,6 +636,17 @@ socket.on("game-controller-state", (data) => {
     } else {
       updateStatus("You lost!", "#ff6666");
     }
+    // show the game-over modal
+    var endModal = document.getElementById("end-modal");
+    if (endModal) {
+      var endStat = document.getElementById("endStatText");
+      if (endStat) {
+        endStat.textContent = winnerNum === myPlayerNumber ? "You Win!" : "You Lost";
+        endStat.style.color = winnerNum === myPlayerNumber ? "#ffcc00" : "#ff6666";
+      }
+      endModal.style.opacity = "1";
+      endModal.style.zIndex = "1000";
+    }
   }
 
   updateCounters();
@@ -605,6 +657,68 @@ socket.on("opponent-disconnected", (data) => {
   console.log("Opponent disconnected");
   updateStatus(data.message, "#f44336");
   gameReady = false;
+});
+
+// move timer countdown
+var timerInterval = null;
+socket.on("timer-start", (data) => {
+  var seconds = data.seconds;
+  var timerEl = document.getElementById("moveTimer");
+  if (timerInterval) clearInterval(timerInterval);
+  if (timerEl) timerEl.textContent = seconds;
+  timerInterval = setInterval(function() {
+    seconds--;
+    if (timerEl) {
+      timerEl.textContent = seconds;
+      timerEl.style.color = seconds <= 10 ? "#ff4444" : "#ffffff";
+    }
+    if (seconds <= 0) {
+      clearInterval(timerInterval);
+      if (timerEl) timerEl.textContent = "0";
+    }
+  }, 1000);
+});
+
+socket.on("game-over", (data) => {
+  console.log("Game over event:", data);
+  if (timerInterval) clearInterval(timerInterval);
+
+  var eloText = document.getElementById("eloChangeText");
+  var endStat = document.getElementById("endStatText");
+
+  // figure out the reason text
+  var reasonText = "";
+  if (data.reason === "opponent_resigned") reasonText = "Opponent resigned";
+  else if (data.reason === "time_expired") reasonText = "Time expired";
+  else if (data.reason === "opponent_disconnected") reasonText = "Opponent disconnected";
+  else if (data.reason === "opponent_below_three") reasonText = "Opponent has fewer than 3 cows";
+  else if (data.reason === "opponent_no_moves") reasonText = "Opponent has no legal moves";
+  else if (data.reason === "fifty_move_rule") reasonText = "Draw - 50 moves without capture";
+
+  var isWinner = data.winner === playerUsername;
+
+  if (endStat) {
+    endStat.textContent = isWinner ? "You Win!" : (data.reason === "fifty_move_rule" ? "Draw!" : "You Lost");
+    endStat.style.color = isWinner ? "#ffcc00" : "#ff6666";
+  }
+
+  if (eloText && data.elo) {
+    var change = isWinner ? data.elo.winnerChange : data.elo.loserChange;
+    var newElo = isWinner ? data.elo.winnerElo : data.elo.loserElo;
+    var sign = change >= 0 ? "+" : "";
+    eloText.textContent = reasonText + " | Rating: " + newElo + " (" + sign + change + ")";
+    eloText.style.color = change >= 0 ? "#4CAF50" : "#ff6666";
+  } else if (eloText) {
+    eloText.textContent = reasonText;
+    eloText.style.color = "#aaa";
+  }
+
+  // show the modal
+  var endModal = document.getElementById("end-modal");
+  if (endModal) {
+    endModal.style.opacity = "1";
+    endModal.style.zIndex = "1000";
+  }
 });
 
 socket.on("error", (message) => {
@@ -631,5 +745,26 @@ updateCounters();
 drawBoard();
 updateStatus("Connecting to game server...", "#ff9800");
 
+// show the room code
+var roomCodeEl = document.getElementById("roomCodeDisplay");
+if (roomCodeEl) roomCodeEl.textContent = roomCode;
+
+// resign button
+var resignBtn = document.getElementById("resignBtn");
+if (resignBtn) {
+  resignBtn.addEventListener("click", function() {
+    if (confirm("Are you sure you want to resign? Your opponent will win.")) {
+      socket.emit("resign", { roomCode: roomCode });
+    }
+  });
+}
+
+// rematch button - goes back to menu to create a new room
+var rematchBtn = document.getElementById("rematchBtn");
+if (rematchBtn) {
+  rematchBtn.addEventListener("click", function() {
+    window.location.href = "../HomePage/index.html";
+  });
+}
+
 console.log("Online board ready!");
-console.log("Waiting for player assignment...");

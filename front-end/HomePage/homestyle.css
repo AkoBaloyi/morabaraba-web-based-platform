@@ -13,6 +13,10 @@ body {
 
   background-color: #1e2a3a;
 
+  font-family:
+    "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans",
+    Arial, sans-serif;
+
   display: grid;
   grid-template-rows: 90px 1fr; /*creates 3 row*/
   grid-template-columns: 240px 1fr; /*creares 2 columbs*/
@@ -53,7 +57,7 @@ body {
 
   padding: 20px;
 
-  border-right: 5px solid black;
+  border-right: 3px solid black;
 
   overflow-y: auto;
 
@@ -136,6 +140,7 @@ body {
 
 a {
   text-decoration: none;
+
   color: inherit;
 }
 .display {
@@ -255,7 +260,7 @@ a {
   box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
 }
 
-.local-button {
+.side-buttons {
   display: block;
 
   border: solid;
@@ -282,42 +287,7 @@ a {
     box-shadow 0.15s;
 }
 
-.local-button:hover {
-  padding: 18px;
-
-  font-size: 18px;
-
-  box-shadow: -1px 3px 20px rgba(0, 0, 0, 0.5);
-}
-
-.online-button {
-  display: block;
-
-  border: solid;
-
-  padding: 10px;
-
-  font-family: Arial;
-
-  font-weight: bold;
-
-  font-size: 15px;
-
-  border-radius: 5px;
-
-  color: black;
-
-  background-color: rgb(191, 191, 191);
-
-  cursor: pointer;
-
-  transition:
-    padding 0.15s,
-    font-size 0.15s,
-    box-shadow 0.15s;
-}
-
-.online-button:hover {
+.side-buttons:hover {
   padding: 18px;
 
   font-size: 18px;
@@ -353,6 +323,14 @@ a {
 
   padding: 15px 25px;
 
+  width: 500px;
+
+  height: 500px;
+
+  color: black;
+}
+
+.modal-content-position {
   display: flex;
 
   flex-direction: column;
@@ -361,9 +339,21 @@ a {
 
   justify-content: center;
 
-  width: 500px;
+  gap: 30px;
 
-  height: 500px;
+  height: 90%;
+}
+
+.modal-inner-leader-board {
+  background-color: #3d5898;
+
+  border-radius: 15px;
+
+  padding: 15px 25px;
+
+  width: 600px;
+
+  height: 600px;
 
   color: black;
 
@@ -710,4 +700,67 @@ a {
 
 .close-btn:hover {
   background-color: rgb(128, 130, 128);
+}
+
+.leader-board {
+  display: flex;
+
+  flex-direction: column;
+
+  border-radius: 10px;
+
+  margin: 10px;
+
+  background-color: white;
+
+  height: 90%;
+
+  box-shadow: 0 5px 20px black;
+
+  overflow: hidden;
+}
+
+.leader-board-header {
+  background-color: royalblue;
+
+  color: white;
+
+  text-align: center;
+
+  padding: 20px;
+
+  font-size: 1.5rem;
+
+  font-weight: 700;
+}
+
+table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+
+  text-align: center;
+
+  font-size: 1rem;
+}
+
+th {
+  background-color: rgb(226, 226, 226);
+
+  color: black;
+}
+
+tr:nth-child(even) {
+  background-color: #f7f9fc;
+}
+
+.rank {
+  font-weight: bold;
+
+  color: royalblue;
 }

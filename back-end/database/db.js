@@ -66,6 +66,35 @@ db.serialize(() => {
       FOREIGN KEY (game_id) REFERENCES games(id)
     )
   `);
+
+  // Add stats columns to users table for tracking wins/losses/draws
+  db.run(
+    `ALTER TABLE users ADD COLUMN total_games INTEGER DEFAULT 0`,
+    function (err) {
+      // ignore error - column may already exist
+    },
+  );
+
+  db.run(`ALTER TABLE users ADD COLUMN wins INTEGER DEFAULT 0`, function (err) {
+    // ignore error
+  });
+
+  db.run(
+    `ALTER TABLE users ADD COLUMN losses INTEGER DEFAULT 0`,
+    function (err) {
+      // ignore error
+    },
+  );
+
+  db.run(
+    `ALTER TABLE users ADD COLUMN draws INTEGER DEFAULT 0`,
+    function (err) {
+      // ignore error
+    },
+  );
+
+  // Create index for faster leaderboard queries
+  db.run(`CREATE INDEX IF NOT EXISTS idx_users_elo ON users(elo DESC)`);
 });
 
 // exporting both ways so it works with getDB() and direct require

@@ -27,7 +27,9 @@ function copyState(state) {
     })),
     winner: state.winner,
     winReason: state.winReason,
-    variant: state.variant
+    variant: state.variant,
+    moveCount: state.moveCount || 0,
+    movesSinceCapture: state.movesSinceCapture || 0
   };
 }
 
@@ -99,6 +101,15 @@ function applyPlacement(state, nodeId) {
   } else {
     // no mill, switch turns
     newState.currentPlayer = getOpponent(currentPlayer);
+    newState.moveCount++;
+    newState.movesSinceCapture++;
+    
+    // check for draw by 50 moves without capture
+    if (newState.movesSinceCapture >= 50) {
+      newState.winner = 'draw';
+      newState.winReason = 'fifty_move_rule';
+      return newState;
+    }
     
     // check if the other player can even move
     const winResult = checkWinCondition(newState);
@@ -173,6 +184,14 @@ function applySlide(state, from, to) {
     newState.capturePending += newMills.length;
   } else {
     newState.currentPlayer = getOpponent(currentPlayer);
+    newState.moveCount++;
+    newState.movesSinceCapture++;
+    
+    if (newState.movesSinceCapture >= 50) {
+      newState.winner = 'draw';
+      newState.winReason = 'fifty_move_rule';
+      return newState;
+    }
     
     const winResult = checkWinCondition(newState);
     if (winResult !== null) {
@@ -222,6 +241,7 @@ function applyCapture(state, targetNode) {
   newState.nodes[targetNode] = null;
   newState.capturePending--;
   newState.cowsCaptured[currentPlayer]++;
+  newState.movesSinceCapture = 0; // reset on capture
   
   // update mills since we might have broken one
   newState.mills = getMills(newState);
