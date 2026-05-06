@@ -145,15 +145,20 @@ document.addEventListener("DOMContentLoaded", () => {
     var token = localStorage.getItem("token");
     if (!token) return;
     fetch("http://localhost:3000/profile", {
-      headers: { Authorization: "Bearer " + token }
+      headers: { Authorization: "Bearer " + token },
     })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
         if (data && data.elo) {
-          playerDisplay.textContent = playerUsername + " (Elo: " + data.elo + ")";
+          playerDisplay.textContent =
+            playerUsername + " (Elo: " + data.elo + ")";
         }
       })
-      .catch(function() { /* server not running, ignore */ });
+      .catch(function () {
+        /* server not running, ignore */
+      });
   }
 
   // Show notification helper
