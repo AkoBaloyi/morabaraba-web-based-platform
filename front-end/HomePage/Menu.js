@@ -128,7 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAuthUI();
 
     //guest-player display
-    if (playerDisplay) playerDisplay.textContent = "Guest-player";
+    if (playerDisplay) {
+      playerDisplay.textContent = "Guest_Player";
+    }
 
     // Disconnect and reconnect socket as guest
     if (socket) {

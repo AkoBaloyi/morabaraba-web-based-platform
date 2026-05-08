@@ -203,15 +203,17 @@ a {
 
   height: auto;
 
-  border: 3px solid black;
+  border: 1px solid black;
 
-  border-radius: 25px;
+  border-radius: 9px;
 }
 
 .morabaraba-text {
-  font-family: Arial;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 
   font-size: 50px;
+
+  margin-right: 5rem;
 }
 
 .log-in-button {
