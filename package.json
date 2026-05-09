@@ -1,0 +1,14 @@
+{
+  "name": "morabaraba-web-platform",
+  "version": "1.0.0",
+  "description": "Web-based Morabaraba game platform",
+  "main": "back-end/server.js",
+  "scripts": {
+    "start": "node back-end/server.js",
+    "postinstall": "cd back-end && npm install",
+    "test": "cd engine && npx jest"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
