@@ -246,6 +246,27 @@
             <button class="create-account-button" id="sign-up-button">
               Create Account
             </button>
+
+            <button class="create-account-button" id="forgot-password-button" style="margin-top:5px; font-size:12px;">
+              Forgot Password?
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forgot password modal -->
+      <div class="modal" id="forgot-password-modal">
+        <div class="modal-inner">
+          <button class="closeModal" id="closeForgotModal">back</button>
+
+          <div class="modal-content-position">
+            <h2>Reset Password</h2>
+
+            <input class="username-input" id="reset-username" type="text" placeholder="Username" required />
+            <input class="username-input" id="reset-email" type="email" placeholder="Email" required />
+            <input class="password-input" id="reset-new-password" type="password" placeholder="New Password" required />
+
+            <button type="submit" class="inner-login-button" id="reset-submit-btn">RESET PASSWORD</button>
           </div>
         </div>
       </div>
