@@ -188,7 +188,10 @@ function startMoveTimer(roomCode) {
     var db = getDB();
     db.run(
       `INSERT INTO games (room_code, player1_id, player2_id, winner_id, player1_name, player2_name, winner_name, status, ended_at) VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), ?, ?, ?, 'completed', datetime('now'))`,
-      [roomCode, r.players[0]?.username, r.players[1]?.username, winner?.username, r.players[0]?.username, r.players[1]?.username, winner?.username]    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
+      [roomCode, r.players[0]?.username, r.players[1]?.username, winner?.username, r.players[0]?.username, r.players[1]?.username, winner?.username]
+    );
+
+    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
       io.to(roomCode).emit("game-over", {
         winner: winner?.username,
         reason: "time_expired",
