@@ -344,15 +344,15 @@ function selectMoveHard(state) {
   
   const aiPlayer = state.currentPlayer;
   const startTime = Date.now();
-  const timeLimit = 1800; // 1.8 seconds, leaves 200ms buffer
+  const timeLimit = 3500; // 3.5 seconds - runs in Web Worker so no UI freeze
   
   let bestMove = legalMoves[0];
   let bestScore = -Infinity;
   
   // try deeper and deeper searches until we run out of time
-  for (let depth = 3; depth <= 5; depth++) {
-    // if we've used 70% of our time, don't start another depth
-    if (Date.now() - startTime > timeLimit * 0.7) {
+  for (let depth = 3; depth <= 8; depth++) {
+    // if we've used 60% of our time, don't start another depth
+    if (Date.now() - startTime > timeLimit * 0.6) {
       break;
     }
     
