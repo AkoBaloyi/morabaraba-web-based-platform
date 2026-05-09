@@ -194,10 +194,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Connect to game server
   function connectSocket() {
     const savedToken = localStorage.getItem("token");
-    socket = io((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000"), {
-      transports: ["websocket", "polling"],
-      auth: { token: savedToken || null },
-    });
+    socket = io(
+      typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000",
+      {
+        transports: ["websocket", "polling"],
+        auth: { token: savedToken || null },
+      },
+    );
 
     socket.on("connect", () => {
       console.log("Connected to game server");
