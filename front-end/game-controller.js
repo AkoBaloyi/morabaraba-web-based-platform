@@ -530,7 +530,11 @@ function handleClick(event) {
 // (workers dont work when opening HTML files directly without a server)
 var aiWorker = null;
 try {
-  aiWorker = new Worker('./ai-worker.js');
+  aiWorker = new Worker('../ai-worker.js');
+  aiWorker.onerror = function(err) {
+    console.log('Worker error, falling back to main thread:', err.message);
+    aiWorker = null;
+  };
   aiWorker.onmessage = function(e) {
     var move = e.data.move;
     if (!move) {
@@ -556,10 +560,11 @@ try {
 
     // if its still the AI's turn (capture after mill), ask for another move
     if (gameState.currentPlayer === 'black' && !gameState.winner) {
-      // small delay so the player can see the mill before capture
+      // small delay so the player can see the mill before capture (only for hard)
+      var delay = gameMode === 'hard' ? 500 : 100;
       setTimeout(function() {
         aiWorker.postMessage({ state: gameState, difficulty: gameMode });
-      }, 500);
+      }, delay);
     } else {
       aiThinking = false;
       drawBoard();
