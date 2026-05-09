@@ -39,21 +39,30 @@
 
       <div class="modal" id="end-modal">
         <div class="end-modal-inner">
-          <span class="end-stat">End Game Status</span>
-          <!--Shold display Game Won or Game lost-->
 
-          <span class="rating-text"
-            >New Rating: <span class="elo-update">250</span></span
-          >
+          <div class="close-container">
+            <button class="close-btn-WLmodal ">&times;</button>
+          </div>
+          
+          <div class="in-end">
 
-          <div class="reset-button-container">
-            <button class="reset-button" onclick="resetGame()">
-              Try Again
-            </button>
+              <span class="end-stat">End Game Status</span>
+            <!--Shold display Game Won or Game lost-->
 
-            <a href="../HomePage/index.html"
-              ><button class="reset-button">Back to Menu</button></a
+            <span class="rating-text"
+              >New Rating: <span class="elo-update">250</span></span
             >
+
+            <div class="reset-button-container">
+              <button class="reset-button" onclick="resetGame()">
+                Try Again
+              </button>
+
+              <a href="../HomePage/index.html"
+                ><button class="reset-button">Back to Menu</button></a
+              >
+          </div>
+          
           </div>
         </div>
       </div>

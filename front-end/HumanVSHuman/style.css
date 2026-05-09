@@ -39,6 +39,19 @@ body {
 
   padding: 15px 25px;
 
+  
+
+  width: 400px;
+
+  height: 350px;
+
+  color: black;
+
+  
+}
+
+.in-end{
+
   display: flex;
 
   flex-direction: column;
@@ -47,13 +60,43 @@ body {
 
   justify-content: center;
 
-  width: 400px;
-
-  height: 350px;
-
-  color: black;
-
   gap: 30px;
+
+  height: 90%;
+
+}
+
+.close-container{
+
+  display: flex;
+
+  justify-content: flex-start;
+}
+
+.close-btn-WLmodal{
+  padding: 5px;
+
+  border-radius: 5px;
+
+  border: none;
+
+  width: 40px;
+
+  height: 40px;
+
+  font-size: 30px;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  font-weight: bold;
+}
+
+.close-btn-WLmodal:hover{
+  background-color: rgb(181, 181, 181);
 }
 
 .elo-update {
