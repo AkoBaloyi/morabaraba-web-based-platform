@@ -1,7 +1,13 @@
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
-const dbPath = path.join(__dirname, "morabaraba.db");
+// On Azure App Service, /home is persistent storage that survives redeploys.
+// Locally, we use the project directory as before.
+const isAzure = process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME;
+const dbPath = isAzure
+  ? "/home/morabaraba.db"
+  : path.join(__dirname, "morabaraba.db");
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("Database connection error:", err);
   else console.log("Connected to SQLite database at", dbPath);
