@@ -8,6 +8,7 @@ lerna-debug.log*
 
 # Database files (generated at runtime)
 *.db
+back-end/database/morabaraba.db
 
 # Personal update notes (not for repo)
 UPDATES_FOR_TEAM.md
@@ -143,3 +144,6 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Personal submission documents (not for repo)
+submissions/

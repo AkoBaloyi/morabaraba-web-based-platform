@@ -51,3 +51,21 @@ These gaps are covered by manual testing during development.
 2. Import from `../src/index` (re-exports all engine modules)
 3. Write tests using `test('description', () => { ... })`
 4. Run `npx jest` to verify
+
+
+## Integration and System Tests
+
+In addition to the 95 automated unit tests, 15 manual test procedures were documented and executed covering integration (8 tests) and system-level (7 tests) scenarios. These are documented in `docs/INTEGRATION_AND_SYSTEM_TESTS.md`.
+
+Integration tests verify component interactions (engine-to-frontend, engine-to-AI, server validation, socket sync, auth flow, Elo updates).
+
+System tests verify complete end-to-end flows (full local game, full online game, resign, timer expiry, disconnect, password reset, draw detection).
+
+## Test Summary
+
+| Level | Automated | Manual | Total |
+|-------|-----------|--------|-------|
+| Unit | 95 | 0 | 95 |
+| Integration | 0 | 8 | 8 |
+| System | 0 | 7 | 7 |
+| **Total** | **95** | **15** | **110** |
