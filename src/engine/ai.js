@@ -130,125 +130,127 @@ class MediumAI {
 }
 
 // Evaluates how good a game state is for a given player
-// Looks at piece count, mills, mobility, potential mills, and center control
+// Stronger evaluation with double-mill detection, trapped pieces, and phase-aware scoring
 function evaluateState(state, player) {
   const opponent = getOpponent(player);
   
-  // if someone already won, that's pretty clear cut
-  if (state.winner === player) {
-    return 10000;
-  }
-  if (state.winner === opponent) {
-    return -10000;
-  }
+  // terminal states
+  if (state.winner === player) return 10000;
+  if (state.winner === opponent) return -10000;
+  if (state.winner === 'draw') return 0;
   
   let score = 0;
   
-  // piece count is the most important thing (100 pts per cow difference)
   const playerCows = countCowsOnBoard(state, player);
   const opponentCows = countCowsOnBoard(state, opponent);
   const cowsToPlacePlayer = state.cowsToPlace[player];
   const cowsToPlaceOpponent = state.cowsToPlace[opponent];
-  
   const playerTotal = playerCows + cowsToPlacePlayer;
   const opponentTotal = opponentCows + cowsToPlaceOpponent;
   
-  score += (playerTotal - opponentTotal) * 100;
+  // piece advantage is king (150 pts per cow in movement phase, 100 in placement)
+  const phaseMultiplier = (cowsToPlacePlayer === 0 && cowsToPlaceOpponent === 0) ? 150 : 100;
+  score += (playerTotal - opponentTotal) * phaseMultiplier;
   
-  // mills are worth 30 pts each
+  // opponent at 3 cows (about to lose) is very good for us
+  if (cowsToPlaceOpponent === 0 && opponentCows === 3) score += 500;
+  if (cowsToPlacePlayer === 0 && playerCows === 3) score -= 500;
+  
+  // mills
   const mills = getMills(state);
   let playerMills = 0;
   let opponentMills = 0;
   
   for (const mill of mills) {
-    if (mill.player === player) {
-      playerMills++;
-    } else {
-      opponentMills++;
+    if (mill.player === player) playerMills++;
+    else opponentMills++;
+  }
+  score += (playerMills - opponentMills) * 40;
+  
+  // double mill detection: a cow that belongs to two mills simultaneously
+  // this is devastating because you can open and close mills every turn
+  let playerDoubleMills = 0;
+  let opponentDoubleMills = 0;
+  const nodeMills = {};
+  for (const mill of mills) {
+    for (const nodeId of mill.nodes) {
+      const key = mill.player + '-' + nodeId;
+      nodeMills[key] = (nodeMills[key] || 0) + 1;
+      if (nodeMills[key] === 2) {
+        if (mill.player === player) playerDoubleMills++;
+        else opponentDoubleMills++;
+      }
     }
   }
+  score += (playerDoubleMills - opponentDoubleMills) * 80;
   
-  score += (playerMills - opponentMills) * 30;
+  // potential mills (2 in a row with empty third) - threats
+  let playerPotentialMills = 0;
+  let opponentPotentialMills = 0;
+  // open mills: 1 cow + 2 empty in a line (future potential)
+  let playerOpenMills = 0;
+  let opponentOpenMills = 0;
   
-  // mobility - how many places can your cows go? (2 pts per option)
+  for (const millDef of STANDARD_MILLS) {
+    let pCount = 0, oCount = 0, emptyCount = 0;
+    for (const nodeId of millDef) {
+      if (state.nodes[nodeId] === player) pCount++;
+      else if (state.nodes[nodeId] === opponent) oCount++;
+      else emptyCount++;
+    }
+    if (pCount === 2 && emptyCount === 1) playerPotentialMills++;
+    if (oCount === 2 && emptyCount === 1) opponentPotentialMills++;
+    if (pCount === 1 && emptyCount === 2) playerOpenMills++;
+    if (oCount === 1 && emptyCount === 2) opponentOpenMills++;
+  }
+  score += (playerPotentialMills - opponentPotentialMills) * 25;
+  score += (playerOpenMills - opponentOpenMills) * 5;
+  
+  // mobility (movement phase only - in placement everyone has same mobility)
   const playerPhase = getPhase(state, player);
   const opponentPhase = getPhase(state, opponent);
   
-  let playerMobility = 0;
-  let opponentMobility = 0;
-  
-  if (playerPhase === 'placement') {
-    playerMobility = state.nodes.filter(n => n === null).length;
-  } else if (playerPhase === 'flying') {
-    playerMobility = playerCows * state.nodes.filter(n => n === null).length;
-  } else {
-    for (let nodeId = 0; nodeId < BOARD_SIZE; nodeId++) {
-      if (state.nodes[nodeId] === player) {
-        const adjacent = STANDARD_ADJACENCY[String(nodeId)] || [];
-        playerMobility += adjacent.filter(n => state.nodes[n] === null).length;
-      }
-    }
-  }
-  
-  if (opponentPhase === 'placement') {
-    opponentMobility = state.nodes.filter(n => n === null).length;
-  } else if (opponentPhase === 'flying') {
-    opponentMobility = opponentCows * state.nodes.filter(n => n === null).length;
-  } else {
-    for (let nodeId = 0; nodeId < BOARD_SIZE; nodeId++) {
-      if (state.nodes[nodeId] === opponent) {
-        const adjacent = STANDARD_ADJACENCY[String(nodeId)] || [];
-        opponentMobility += adjacent.filter(n => state.nodes[n] === null).length;
-      }
-    }
-  }
-  
-  score += (playerMobility - opponentMobility) * 2;
-  
-  // potential mills - 2 cows in a line with the third spot empty (15 pts)
-  let playerPotentialMills = 0;
-  let opponentPotentialMills = 0;
-  
-  for (const millDef of STANDARD_MILLS) {
-    let playerCount = 0;
-    let opponentCount = 0;
-    let emptyCount = 0;
+  if (playerPhase !== 'placement' || opponentPhase !== 'placement') {
+    let playerMobility = 0;
+    let opponentMobility = 0;
     
-    for (const nodeId of millDef) {
-      if (state.nodes[nodeId] === player) {
-        playerCount++;
-      } else if (state.nodes[nodeId] === opponent) {
-        opponentCount++;
-      } else {
-        emptyCount++;
+    if (playerPhase === 'flying') {
+      playerMobility = state.nodes.filter(n => n === null).length;
+    } else if (playerPhase === 'movement') {
+      for (let nodeId = 0; nodeId < BOARD_SIZE; nodeId++) {
+        if (state.nodes[nodeId] === player) {
+          const adjacent = STANDARD_ADJACENCY[String(nodeId)] || [];
+          playerMobility += adjacent.filter(n => state.nodes[n] === null).length;
+        }
       }
     }
     
-    if (playerCount === 2 && emptyCount === 1) {
-      playerPotentialMills++;
+    if (opponentPhase === 'flying') {
+      opponentMobility = state.nodes.filter(n => n === null).length;
+    } else if (opponentPhase === 'movement') {
+      for (let nodeId = 0; nodeId < BOARD_SIZE; nodeId++) {
+        if (state.nodes[nodeId] === opponent) {
+          const adjacent = STANDARD_ADJACENCY[String(nodeId)] || [];
+          opponentMobility += adjacent.filter(n => state.nodes[n] === null).length;
+        }
+      }
     }
-    if (opponentCount === 2 && emptyCount === 1) {
-      opponentPotentialMills++;
-    }
+    
+    score += (playerMobility - opponentMobility) * 8;
+    
+    // trapped pieces (0 mobility) is very bad
+    if (playerPhase === 'movement' && playerMobility === 0) score -= 2000;
+    if (opponentPhase === 'movement' && opponentMobility === 0) score += 2000;
   }
   
-  score += (playerPotentialMills - opponentPotentialMills) * 15;
+  // center/junction control - nodes with 4 connections are strategically valuable
+  const junctionNodes = [4, 10, 13, 19]; // middle of each side of middle square
+  const cornerNodes = [0, 2, 14, 21, 23]; // corners have 2-3 connections
   
-  // center control bonus - nodes 4, 10, 13, 19 have 4 connections each
-  // so they're strategically more valuable (10 pts)
-  const centerNodes = [4, 10, 13, 19];
-  let playerCenterControl = 0;
-  let opponentCenterControl = 0;
-  
-  for (const nodeId of centerNodes) {
-    if (state.nodes[nodeId] === player) {
-      playerCenterControl++;
-    } else if (state.nodes[nodeId] === opponent) {
-      opponentCenterControl++;
-    }
+  for (const nodeId of junctionNodes) {
+    if (state.nodes[nodeId] === player) score += 12;
+    else if (state.nodes[nodeId] === opponent) score -= 12;
   }
-  
-  score += (playerCenterControl - opponentCenterControl) * 10;
   
   return score;
 }
