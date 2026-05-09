@@ -43,7 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelLogoutBtn = document.getElementById("cancel-logout-btn");
   const closeLogoutModalBtn = document.querySelector(".close-logout-modal");
 
-  openBtn.addEventListener("click", () => modal.classList.add("open"));
+  openBtn.addEventListener("click", () => {
+    modal.classList.add("open");
+  });
   closeBtn.addEventListener("click", () => modal.classList.remove("open"));
 
   aiOpenBtn.addEventListener("click", () => {
@@ -62,6 +64,13 @@ document.addEventListener("DOMContentLoaded", () => {
   closeLeaderBoard.addEventListener("click", () =>
     leaderBoardModal.classList.remove("open"),
   );
+
+  const historyBtn = document.getElementById("history-button");
+  if (historyBtn) {
+    historyBtn.addEventListener("click", () => {
+      loadMatchHistory();
+    });
+  }
 
   let socket = null;
   let currentRoomCode = null;
@@ -119,7 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAuthUI();
 
     //guest-player display
-    if (playerDisplay) playerDisplay.textContent = "Guest-player";
+    if (playerDisplay) {
+      playerDisplay.textContent = "Guest_Player";
+    }
 
     // Disconnect and reconnect socket as guest
     if (socket) {
@@ -145,15 +156,20 @@ document.addEventListener("DOMContentLoaded", () => {
     var token = localStorage.getItem("token");
     if (!token) return;
     fetch("http://localhost:3000/profile", {
-      headers: { Authorization: "Bearer " + token }
+      headers: { Authorization: "Bearer " + token },
     })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
         if (data && data.elo) {
-          playerDisplay.textContent = playerUsername + " (Elo: " + data.elo + ")";
+          playerDisplay.textContent =
+            playerUsername + " (Elo: " + data.elo + ")";
         }
       })
-      .catch(function() { /* server not running, ignore */ });
+      .catch(function () {
+        /* server not running, ignore */
+      });
   }
 
   // Show notification helper
@@ -578,6 +594,98 @@ document.addEventListener("DOMContentLoaded", () => {
       loadLeaderboard();
       document.getElementById("leader-board-modal").classList.add("open");
     });
+
+  // Fetch and display match history
+  async function loadMatchHistory() {
+    const username = localStorage.getItem("username");
+    if (!username || username.includes("Guest")) {
+      showNotification("Login to view match history", "#ff9800");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3000/api/match-history/${username}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const result = await response.json();
+
+      if (result.success && result.data.length > 0) {
+        displayMatchHistoryModal(result.data);
+      } else {
+        showNotification("No match history found", "#ff9800");
+      }
+    } catch (error) {
+      console.error("Error loading match history:", error);
+      showNotification("Failed to load match history", "#f44336");
+    }
+  }
+
+  // Display match history in a modal
+  function displayMatchHistoryModal(matches) {
+    // Create modal if it doesn't exist
+    let historyModal = document.getElementById("match-history-modal");
+    if (!historyModal) {
+      historyModal = document.createElement("div");
+      historyModal.id = "match-history-modal";
+      historyModal.className = "modal";
+      historyModal.innerHTML = `
+      <div class="modal-inner match-history-inner">
+        <button class="closeModal close-history-modal">back</button>
+        <div class="match-history-header">
+          <h3>Match History</h3>
+        </div>
+        <div class="match-history-list" id="match-history-list"></div>
+      </div>
+    `;
+      document.body.appendChild(historyModal);
+
+      // Add close button event
+      historyModal
+        .querySelector(".close-history-modal")
+        .addEventListener("click", () => {
+          historyModal.classList.remove("open");
+        });
+    }
+
+    const listContainer = document.getElementById("match-history-list");
+    listContainer.innerHTML = "";
+
+    matches.forEach((match) => {
+      const opponent =
+        match.player1_name === localStorage.getItem("username")
+          ? match.player2_name
+          : match.player1_name;
+      const date = match.ended_at
+        ? new Date(match.ended_at).toLocaleDateString()
+        : "Unknown";
+      const resultClass =
+        match.result === "win"
+          ? "match-win"
+          : match.result === "loss"
+            ? "match-loss"
+            : "match-draw";
+      const resultText = match.result.toUpperCase();
+
+      const matchElement = document.createElement("div");
+      matchElement.className = `match-history-item ${resultClass}`;
+      matchElement.innerHTML = `
+      <div class="match-opponent">vs ${opponent || "Unknown"}</div>
+      <div class="match-result">${resultText}</div>
+      <div class="match-date">${date}</div>
+    `;
+      listContainer.appendChild(matchElement);
+    });
+
+    historyModal.classList.add("open");
+  }
 
   // Initialize
   checkExistingSession();

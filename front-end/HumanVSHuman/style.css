@@ -12,64 +12,61 @@ body {
   color: white;
 }
 
-.modal{ /*Modal for the win screen*/
+.modal {
+  /*Modal for the win screen*/
 
-    background-color: rgba(0, 0, 0, 0.3);
-    opacity: 0; /*make value 1 to make it visible.*/
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transition: all 0.3s ease-in-out;
-    z-index: -1; /*make value 1000 to make the modal appear on top of other content.*/
+  background-color: rgba(0, 0, 0, 0.3);
+  opacity: 0; /*make value 1 to make it visible.*/
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: all 0.3s ease-in-out;
+  z-index: -1; /*make value 1000 to make the modal appear on top of other content.*/
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.end-modal-inner{
+.end-modal-inner {
+  background-color: rgb(92, 91, 91);
 
-    background-color: rgb(92, 91, 91);
+  border-radius: 15px;
 
-    border-radius: 15px;
+  border: 3px solid black;
 
-    border: 3px solid black;
+  padding: 15px 25px;
 
-    padding: 15px 25px;
+  display: flex;
 
-    display: flex;
+  flex-direction: column;
 
-    flex-direction: column;
+  align-items: center;
 
-    align-items: center;
+  justify-content: center;
 
-    justify-content: center;
+  width: 400px;
 
-    width: 400px;
+  height: 350px;
 
-    height: 350px;
+  color: black;
 
-    color: black;
-
-    gap: 30px;
+  gap: 30px;
 }
 
-.elo-update{
-
+.elo-update {
   color: rgb(187, 186, 186);
 }
 
-.end-stat{
-
+.end-stat {
   font-size: 35px;
 
   font-weight: bold;
 }
 
-.rating-text{
-
+.rating-text {
   font-size: 20px;
 
   font-weight: 700;
@@ -145,14 +142,24 @@ body {
 
 /* thinking dots animation for AI */
 .thinking-dots::after {
-  content: '';
+  content: "";
   animation: dots 1.5s steps(4, end) infinite;
 }
 
 @keyframes dots {
-  0% { content: ''; }
-  25% { content: '.'; }
-  50% { content: '..'; }
-  75% { content: '...'; }
-  100% { content: ''; }
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+  100% {
+    content: "";
+  }
 }
