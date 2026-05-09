@@ -51,6 +51,11 @@ app.use(express.json());
 const path = require("path");
 app.use(express.static(path.join(__dirname, "..", "front-end")));
 
+// redirect root to homepage
+app.get("/", (req, res) => {
+  res.redirect("/HomePage/index.html");
+});
+
 // use the proper auth routes that actually check the database
 app.use(authRoutes);
 
