@@ -715,11 +715,11 @@
     if (moves.length === 1) return moves[0];
     var aiPlayer = state.currentPlayer;
     var startTime = Date.now(),
-      timeLimit = 1800;
+      timeLimit = 3500;
     var bestMove = moves[0],
       bestScore = -Infinity;
-    for (var depth = 3; depth <= 5; depth++) {
-      if (Date.now() - startTime > timeLimit * 0.7) break;
+    for (var depth = 3; depth <= 8; depth++) {
+      if (Date.now() - startTime > timeLimit * 0.6) break;
       var cbm = moves[0],
         cbs = -Infinity,
         timedOut = false;
