@@ -9,6 +9,12 @@
     <script src="../config.js"></script>
   </head>
   <body>
+
+    <div class="reset-button-container">
+
+      <button class="reset-button" id="resignBtn">Resign</button>
+
+    </div>
     <div class="game-container">
 
       <!-- Room code display -->
@@ -53,13 +59,14 @@
         height="600"
         style="border: 2px solid black; cursor: pointer"
       ></canvas>
+      
+    </div>
 
-      <div class="reset-button-container">
-        <button class="reset-button" id="resignBtn">Resign</button>
-        <a href="../HomePage/index.html"
-          ><button class="reset-button">Back to Menu</button></a
-        >
-      </div>
+    <div class="reset-button-container">
+        
+      <a href="../HomePage/index.html"
+        ><button class="reset-button">Back to Menu</button></a
+      >
     </div>
 
     <script src="./online-board.js" defer></script>
