@@ -47,6 +47,10 @@ app.use(
 
 app.use(express.json());
 
+// serve the frontend as static files (so everything runs from one URL)
+const path = require("path");
+app.use(express.static(path.join(__dirname, "..", "front-end")));
+
 // use the proper auth routes that actually check the database
 app.use(authRoutes);
 

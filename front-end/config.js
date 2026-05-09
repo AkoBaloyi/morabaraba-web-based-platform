@@ -1,6 +1,7 @@
 // config.js - Server URL configuration
-// Change this when testing remotely (e.g. with ngrok)
-// Default: localhost for local development
-// Remote: paste your ngrok URL here like "https://abc123.ngrok-free.app"
+// When hosted on Azure (or any server), the frontend and backend are on the same URL
+// so we just use the current page's origin. For local dev, fall back to localhost:3000.
 
-var SERVER_URL = "http://localhost:3000";
+var SERVER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:3000"
+  : window.location.origin;
