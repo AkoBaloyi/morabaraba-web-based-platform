@@ -17,18 +17,34 @@ router.post("/reset-password", (req, res) => {
     return res.status(400).json({ error: "All fields required" });
   }
   if (newPassword.length < 6) {
-    return res.status(400).json({ error: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ error: "Password must be at least 6 characters" });
   }
   const db = getDB();
   const bcrypt = require("bcryptjs");
-  db.get("SELECT id FROM users WHERE username = ? AND email = ?", [username, email], (err, user) => {
-    if (err || !user) return res.status(404).json({ error: "No account found with that username and email" });
-    const hashed = bcrypt.hashSync(newPassword, 10);
-    db.run("UPDATE users SET password = ? WHERE id = ?", [hashed, user.id], (err) => {
-      if (err) return res.status(500).json({ error: "Failed to reset password" });
-      res.json({ message: "Password reset successful. You can now login." });
-    });
-  });
+  db.get(
+    "SELECT id FROM users WHERE username = ? AND email = ?",
+    [username, email],
+    (err, user) => {
+      if (err || !user)
+        return res
+          .status(404)
+          .json({ error: "No account found with that username and email" });
+      const hashed = bcrypt.hashSync(newPassword, 10);
+      db.run(
+        "UPDATE users SET password = ? WHERE id = ?",
+        [hashed, user.id],
+        (err) => {
+          if (err)
+            return res.status(500).json({ error: "Failed to reset password" });
+          res.json({
+            message: "Password reset successful. You can now login.",
+          });
+        },
+      );
+    },
+  );
 });
 
 // get your own profile (needs token)
@@ -46,27 +62,27 @@ router.get("/profile", verifyToken, (req, res) => {
 });
 
 // match history for a player
-router.get("/match-history/:username", (req, res) => {
-  const db = getDB();
-  const username = req.params.username;
-  db.all(
-    `SELECT g.room_code, g.ended_at, g.player1_name as player1, g.player2_name as player2, g.winner_name as winner
-    FROM games g
-    WHERE g.status = 'completed'
-      AND (g.player1_name = ? OR g.player2_name = ?)
-    ORDER BY g.ended_at DESC LIMIT 20`,
-    [username, username],
-    (err, rows) => {
-      if (err) return res.json({ success: false, data: [] });
-      const data = (rows || []).map((row) => ({
-        opponent: row.player1 === username ? row.player2 : row.player1,
-        result: row.winner === username ? "win" : "loss",
-        date: row.ended_at || "Unknown",
-      }));
-      res.json({ success: true, data: data });
-    }
-  );
-});
+// router.get("/match-history/:username", (req, res) => {
+//   const db = getDB();
+//   const username = req.params.username;
+//   db.all(
+//     `SELECT g.room_code, g.ended_at, g.player1_name as player1, g.player2_name as player2, g.winner_name as winner
+//     FROM games g
+//     WHERE g.status = 'completed'
+//       AND (g.player1_name = ? OR g.player2_name = ?)
+//     ORDER BY g.ended_at DESC LIMIT 20`,
+//     [username, username],
+//     (err, rows) => {
+//       if (err) return res.json({ success: false, data: [] });
+//       const data = (rows || []).map((row) => ({
+//         opponent: row.player1 === username ? row.player2 : row.player1,
+//         result: row.winner === username ? "win" : "loss",
+//         date: row.ended_at || "Unknown",
+//       }));
+//       res.json({ success: true, data: data });
+//     }
+//   );
+// });
 
 // leaderboard - top 20 players by elo
 router.get("/leaderboard", (req, res) => {
@@ -80,7 +96,10 @@ router.get("/leaderboard", (req, res) => {
     FROM users u ORDER BY u.elo DESC LIMIT 20`,
     [],
     (err, rows) => {
-      if (err) return res.status(500).json({ success: false, error: "Database error" });
+      if (err)
+        return res
+          .status(500)
+          .json({ success: false, error: "Database error" });
       const data = (rows || []).map((row, i) => ({
         rank: i + 1,
         username: row.username,
@@ -88,7 +107,7 @@ router.get("/leaderboard", (req, res) => {
         totalGames: row.totalGames || "-",
         wins: row.wins || "-",
         losses: row.losses || "-",
-        draws: "-"
+        draws: "-",
       }));
       res.json({ success: true, data: data });
     },
