@@ -409,6 +409,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Forgot password modal
+  const forgotBtn = document.getElementById("forgot-password-button");
+  const forgotModal = document.getElementById("forgot-password-modal");
+  const closeForgotBtn = document.getElementById("closeForgotModal");
+  const resetSubmitBtn = document.getElementById("reset-submit-btn");
+
+  if (forgotBtn) {
+    forgotBtn.addEventListener("click", () => {
+      logInModal.classList.remove("open");
+      forgotModal.classList.add("open");
+    });
+  }
+  if (closeForgotBtn) {
+    closeForgotBtn.addEventListener("click", () => {
+      forgotModal.classList.remove("open");
+      logInModal.classList.add("open");
+    });
+  }
+  if (resetSubmitBtn) {
+    resetSubmitBtn.addEventListener("click", async () => {
+      const username = document.getElementById("reset-username")?.value;
+      const email = document.getElementById("reset-email")?.value;
+      const newPassword = document.getElementById("reset-new-password")?.value;
+
+      if (!username || !email || !newPassword) {
+        alert("Please fill in all fields");
+        return;
+      }
+
+      try {
+        const response = await fetch((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000") + "/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, newPassword }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          showNotification("Password reset! You can now login.", "#4CAF50");
+          forgotModal.classList.remove("open");
+          logInModal.classList.add("open");
+        } else {
+          alert(data.error || "Reset failed");
+        }
+      } catch (err) {
+        alert("Reset failed. Is the server running?");
+      }
+    });
+  }
+
   // Login form submission
   if (loginSubmitBtn) {
     loginSubmitBtn.addEventListener("click", async () => {
