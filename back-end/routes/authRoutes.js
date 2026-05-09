@@ -50,13 +50,10 @@ router.get("/match-history/:username", (req, res) => {
   const db = getDB();
   const username = req.params.username;
   db.all(
-    `SELECT g.room_code, g.ended_at,
-      (SELECT username FROM users WHERE id = g.player1_id) as player1,
-      (SELECT username FROM users WHERE id = g.player2_id) as player2,
-      (SELECT username FROM users WHERE id = g.winner_id) as winner
+    `SELECT g.room_code, g.ended_at, g.player1_name as player1, g.player2_name as player2, g.winner_name as winner
     FROM games g
     WHERE g.status = 'completed'
-      AND (g.player1_id = (SELECT id FROM users WHERE username = ?) OR g.player2_id = (SELECT id FROM users WHERE username = ?))
+      AND (g.player1_name = ? OR g.player2_name = ?)
     ORDER BY g.ended_at DESC LIMIT 20`,
     [username, username],
     (err, rows) => {

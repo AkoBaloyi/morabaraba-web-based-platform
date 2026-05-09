@@ -44,7 +44,10 @@ db.serialize(() => {
       player1_id INTEGER,
       player2_id INTEGER,
       winner_id INTEGER,
-      moves TEXT, -- JSON string of moves
+      player1_name TEXT,
+      player2_name TEXT,
+      winner_name TEXT,
+      moves TEXT,
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       ended_at DATETIME,
       status TEXT DEFAULT 'active',
@@ -95,6 +98,11 @@ db.serialize(() => {
 
   // Create index for faster leaderboard queries
   db.run(`CREATE INDEX IF NOT EXISTS idx_users_elo ON users(elo DESC)`);
+
+  // add name columns to games table if they dont exist
+  db.run(`ALTER TABLE games ADD COLUMN player1_name TEXT`, function(err) {});
+  db.run(`ALTER TABLE games ADD COLUMN player2_name TEXT`, function(err) {});
+  db.run(`ALTER TABLE games ADD COLUMN winner_name TEXT`, function(err) {});
 });
 
 // exporting both ways so it works with getDB() and direct require

@@ -187,12 +187,8 @@ function startMoveTimer(roomCode) {
 
     var db = getDB();
     db.run(
-      `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
-       VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
-      [roomCode, r.players[0]?.username, r.players[1]?.username, winner?.username]
-    );
-
-    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
+      `INSERT INTO games (room_code, player1_id, player2_id, winner_id, player1_name, player2_name, winner_name, status, ended_at) VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), ?, ?, ?, 'completed', datetime('now'))`,
+      [roomCode, r.players[0]?.username, r.players[1]?.username, winner?.username, r.players[0]?.username, r.players[1]?.username, winner?.username]    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
       io.to(roomCode).emit("game-over", {
         winner: winner?.username,
         reason: "time_expired",
@@ -565,9 +561,8 @@ io.on("connection", (socket) => {
       // save game to database
       const db = getDB();
       db.run(
-        `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
-         VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
-        [roomCode, room.players[0]?.username, room.players[1]?.username, winnerPlayer?.username],
+        `INSERT INTO games (room_code, player1_id, player2_id, winner_id, player1_name, player2_name, winner_name, status, ended_at) VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), ?, ?, ?, 'completed', datetime('now'))`,
+        [roomCode, room.players[0]?.username, room.players[1]?.username, winnerPlayer?.username, room.players[0]?.username, room.players[1]?.username, winnerPlayer?.username],
         function(err) {
           if (err) console.log("Could not save game history:", err.message);
           else console.log("  Game saved to history (id: " + this.lastID + ")");
@@ -647,9 +642,8 @@ io.on("connection", (socket) => {
     // update elo
     const db = getDB();
     db.run(
-      `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
-       VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
-      [roomCode, room.players[0]?.username, room.players[1]?.username, winner?.username]
+      `INSERT INTO games (room_code, player1_id, player2_id, winner_id, player1_name, player2_name, winner_name, status, ended_at) VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), ?, ?, ?, 'completed', datetime('now'))`,
+      [roomCode, room.players[0]?.username, room.players[1]?.username, winner?.username, room.players[0]?.username, room.players[1]?.username, winner?.username]
     );
 
     updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
