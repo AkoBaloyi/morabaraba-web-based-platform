@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function fetchAndShowElo() {
     var token = localStorage.getItem("token");
     if (!token) return;
-    fetch("http://localhost:3000/profile", {
+    fetch((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000") + "/profile", {
       headers: { Authorization: "Bearer " + token },
     })
       .then(function (res) {
@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   async function login(username, password) {
     try {
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000") + "/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   async function signup(username, email, password) {
     try {
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000") + "/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -534,7 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:3000/leaderboard", {
+      const response = await fetch((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000") + "/leaderboard", {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
           "Content-Type": "application/json",
