@@ -52,8 +52,9 @@
     </div>
 
     <script>
+        var serverUrl = (typeof SERVER_URL !== "undefined") ? SERVER_URL : "http://localhost:3000";
         // fetch leaderboard from the server
-        fetch("http://localhost:3000/leaderboard")
+        fetch(serverUrl + "/leaderboard")
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 var body = document.getElementById("leaderboardBody");

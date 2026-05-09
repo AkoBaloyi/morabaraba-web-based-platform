@@ -25,7 +25,7 @@ console.log("=========================================");
 // ==========================================
 // SOCKET CONNECTION
 // ==========================================
-const socket = io("http://localhost:3000", {
+const socket = io((typeof SERVER_URL !== "undefined" ? SERVER_URL : "http://localhost:3000"), {
   transports: ["websocket", "polling"],
   auth: { token: localStorage.getItem("token") || null },
 });

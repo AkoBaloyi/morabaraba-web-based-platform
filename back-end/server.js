@@ -21,6 +21,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5500";
 const PORT = process.env.PORT || 3000;
 
 // allow both localhost and 127.0.0.1 since browsers treat them differently
+// also allow ngrok URLs for remote testing
 const allowedOrigins = [
   CORS_ORIGIN,
   "http://localhost:5500",
@@ -51,7 +52,7 @@ app.use(authRoutes);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
