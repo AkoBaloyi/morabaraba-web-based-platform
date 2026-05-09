@@ -613,33 +613,84 @@
     var opp = getOpponent(player);
     if (state.winner === player) return 10000;
     if (state.winner === opp) return -10000;
+    if (state.winner === 'draw') return 0;
     var score = 0;
     var pCows = countCowsOnBoard(state, player);
     var oCows = countCowsOnBoard(state, opp);
-    score +=
-      (pCows + state.cowsToPlace[player] - oCows - state.cowsToPlace[opp]) *
-      100;
+    var pToPlace = state.cowsToPlace[player];
+    var oToPlace = state.cowsToPlace[opp];
+    var pTotal = pCows + pToPlace;
+    var oTotal = oCows + oToPlace;
+    // piece advantage weighted higher in movement phase
+    var phaseMult = (pToPlace === 0 && oToPlace === 0) ? 150 : 100;
+    score += (pTotal - oTotal) * phaseMult;
+    // opponent near death
+    if (oToPlace === 0 && oCows === 3) score += 500;
+    if (pToPlace === 0 && pCows === 3) score -= 500;
+    // mills and double mills
     var mills = getMills(state);
-    var pm = 0,
-      om = 0;
+    var pm = 0, om = 0;
+    var nodeMills = {};
+    var pDouble = 0, oDouble = 0;
     for (var i = 0; i < mills.length; i++) {
       if (mills[i].player === player) pm++;
       else om++;
+      for (var j = 0; j < mills[i].nodes.length; j++) {
+        var key = mills[i].player + '-' + mills[i].nodes[j];
+        nodeMills[key] = (nodeMills[key] || 0) + 1;
+        if (nodeMills[key] === 2) {
+          if (mills[i].player === player) pDouble++;
+          else oDouble++;
+        }
+      }
     }
-    score += (pm - om) * 30;
-    // potential mills
+    score += (pm - om) * 40;
+    score += (pDouble - oDouble) * 80;
+    // potential mills and open mills
+    var pPot = 0, oPot = 0;
     for (var i = 0; i < STANDARD_MILLS.length; i++) {
-      var md = STANDARD_MILLS[i],
-        pc2 = 0,
-        oc2 = 0,
-        empty = 0;
+      var md = STANDARD_MILLS[i], pc2 = 0, oc2 = 0, empty = 0;
       for (var j = 0; j < 3; j++) {
         if (state.nodes[md[j]] === player) pc2++;
         else if (state.nodes[md[j]] === opp) oc2++;
         else empty++;
       }
-      if (pc2 === 2 && empty === 1) score += 15;
-      if (oc2 === 2 && empty === 1) score -= 15;
+      if (pc2 === 2 && empty === 1) pPot++;
+      if (oc2 === 2 && empty === 1) oPot++;
+    }
+    score += (pPot - oPot) * 25;
+    // mobility in movement phase
+    var pPhase = getPhase(state, player);
+    var oPhase = getPhase(state, opp);
+    if (pPhase !== 'placement' || oPhase !== 'placement') {
+      var pMob = 0, oMob = 0;
+      if (pPhase === 'flying') pMob = state.nodes.filter(function(n){return n===null;}).length;
+      else if (pPhase === 'movement') {
+        for (var n = 0; n < 24; n++) {
+          if (state.nodes[n] === player) {
+            var adj = STANDARD_ADJACENCY[String(n)] || [];
+            for (var a = 0; a < adj.length; a++) if (state.nodes[adj[a]] === null) pMob++;
+          }
+        }
+      }
+      if (oPhase === 'flying') oMob = state.nodes.filter(function(n){return n===null;}).length;
+      else if (oPhase === 'movement') {
+        for (var n = 0; n < 24; n++) {
+          if (state.nodes[n] === opp) {
+            var adj = STANDARD_ADJACENCY[String(n)] || [];
+            for (var a = 0; a < adj.length; a++) if (state.nodes[adj[a]] === null) oMob++;
+          }
+        }
+      }
+      score += (pMob - oMob) * 8;
+      if (pPhase === 'movement' && pMob === 0) score -= 2000;
+      if (oPhase === 'movement' && oMob === 0) score += 2000;
+    }
+    // junction control
+    var junctions = [4, 10, 13, 19];
+    for (var i = 0; i < junctions.length; i++) {
+      if (state.nodes[junctions[i]] === player) score += 12;
+      else if (state.nodes[junctions[i]] === opp) score -= 12;
     }
     return score;
   }
