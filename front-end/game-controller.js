@@ -687,6 +687,18 @@ canvas.addEventListener('click', handleClick);
 canvas.addEventListener('mousemove', handleMouseMove);
 canvas.addEventListener('mouseleave', handleMouseLeave);
 
+// close button on the win/loss modal
+var closeEndModalBtn = document.querySelector('.close-btn-WLmodal');
+if (closeEndModalBtn) {
+  closeEndModalBtn.addEventListener('click', function() {
+    var endModal = document.getElementById('end-modal');
+    if (endModal) {
+      endModal.style.opacity = '0';
+      endModal.style.zIndex = '-1';
+    }
+  });
+}
+
 // initial draw
 drawBoard();
 updateInfo();
