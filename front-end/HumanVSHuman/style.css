@@ -163,3 +163,75 @@ body {
     content: "";
   }
 }
+
+/* ============================================
+   MOBILE RESPONSIVE - Game pages
+   ============================================ */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    padding: 10px;
+    min-height: auto;
+  }
+
+  .game-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #myCanvas {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .info-bar {
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .player-info {
+    min-width: unset;
+    width: 90%;
+    text-align: center;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .status-bar {
+    font-size: 15px;
+    padding: 8px;
+  }
+
+  #phaseText {
+    font-size: 12px;
+  }
+
+  .reset-button-container {
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .reset-button {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .end-modal-inner {
+    width: 90%;
+    max-width: 350px;
+    height: auto;
+    min-height: 250px;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .end-stat {
+    font-size: 24px;
+  }
+
+  .rating-text {
+    font-size: 16px;
+  }
+}
