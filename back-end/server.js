@@ -20,12 +20,25 @@ const server = http.createServer(app);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5500";
 const PORT = process.env.PORT || 3000;
 
+// allow both localhost and 127.0.0.1 since browsers treat them differently
+// also allow ngrok URLs for remote testing
 const allowedOrigins = [
   CORS_ORIGIN,
   "http://localhost:5500",
   "http://127.0.0.1:5500",
 ];
 
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//   }),
+// );
 app.use(
   cors({
     origin: "*",
@@ -33,11 +46,13 @@ app.use(
 );
 
 app.use(express.json());
+
+// use the proper auth routes that actually check the database
 app.use(authRoutes);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -135,74 +150,63 @@ function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
-var MOVE_TIME_LIMIT = 60;
+var MOVE_TIME_LIMIT = 60; // seconds per move
 
+// starts or resets the move timer for a room
+// if the current player doesn't move in time, they lose
 function startMoveTimer(roomCode) {
   var room = rooms.get(roomCode);
   if (!room || room.status !== "playing" || room.gameState.winner) return;
 
+  // clear any existing timer
   if (room.moveTimer) clearTimeout(room.moveTimer);
 
+  // tell both players the timer started
   io.to(roomCode).emit("timer-start", { seconds: MOVE_TIME_LIMIT });
 
-  room.moveTimer = setTimeout(function () {
+  room.moveTimer = setTimeout(function() {
     var r = rooms.get(roomCode);
     if (!r || r.status !== "playing" || r.gameState.winner) return;
 
+    // current player ran out of time
     var loserColor = r.gameState.currentPlayer;
     var loserNum = loserColor === "white" ? 1 : 2;
-    var loser = r.players.find(function (p) {
-      return p.playerNumber === loserNum;
-    });
-    var winner = r.players.find(function (p) {
-      return p.playerNumber !== loserNum;
-    });
+    var loser = r.players.find(function(p) { return p.playerNumber === loserNum; });
+    var winner = r.players.find(function(p) { return p.playerNumber !== loserNum; });
 
-    console.log(
-      loser?.username + " ran out of time. " + winner?.username + " wins.",
-    );
+    console.log(loser?.username + " ran out of time. " + winner?.username + " wins.");
 
     var db = getDB();
     db.run(
       `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
        VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
-      [
-        roomCode,
-        r.players[0]?.username,
-        r.players[1]?.username,
-        winner?.username,
-      ],
+      [roomCode, r.players[0]?.username, r.players[1]?.username, winner?.username]
     );
 
-    updateEloAfterGame(
-      db,
-      winner?.username,
-      loser?.username,
-      false,
-      function (eloResult) {
-        io.to(roomCode).emit("game-over", {
-          winner: winner?.username,
-          reason: "time_expired",
-          elo: eloResult,
-        });
-      },
-    );
+    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
+      io.to(roomCode).emit("game-over", {
+        winner: winner?.username,
+        reason: "time_expired",
+        elo: eloResult
+      });
+    });
 
     r.status = "finished";
-    setTimeout(function () {
-      rooms.delete(roomCode);
-    }, 5000);
+    setTimeout(function() { rooms.delete(roomCode); }, 5000);
   }, MOVE_TIME_LIMIT * 1000);
 }
 
+// socket auth middleware - tries to verify token if provided
+// guests can still connect but wont have a verified username
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (token) {
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      socket.user = decoded;
+      socket.user = decoded; // { id, username }
       console.log(`Authenticated socket: ${decoded.username}`);
     } catch (err) {
+      // bad token - let them connect as guest but log it
       console.log("Socket had invalid token, connecting as guest");
       socket.user = null;
     }
@@ -212,7 +216,7 @@ io.use((socket, next) => {
   next();
 });
 
-// Leaderboard endpoint
+// Leaderboard endpoint - get all registered users who have played online games
 app.get("/api/leaderboard", (req, res) => {
   const db = getDB();
 
@@ -252,7 +256,7 @@ app.get("/api/leaderboard", (req, res) => {
   );
 });
 
-// Get opponent history
+// Get opponent history for a specific user (players they've played with)
 app.get("/api/players-played/:username", (req, res) => {
   const { username } = req.params;
   const db = getDB();
@@ -286,55 +290,6 @@ app.get("/api/players-played/:username", (req, res) => {
   );
 });
 
-// ========== MATCH HISTORY ENDPOINT (ONLY ADDED FEATURE) ==========
-app.get("/api/match-history/:username", (req, res) => {
-  const { username } = req.params;
-  const db = getDB();
-
-  db.get("SELECT id FROM users WHERE username = ?", [username], (err, user) => {
-    if (err || !user) {
-      return res.status(404).json({ success: false, error: "User not found" });
-    }
-
-    db.all(
-      `
-      SELECT 
-        g.id,
-        g.room_code,
-        g.started_at,
-        g.ended_at,
-        g.status,
-        u1.username as player1_name,
-        u2.username as player2_name,
-        winner.username as winner_name,
-        CASE 
-          WHEN winner.id = ? THEN 'win'
-          WHEN g.winner_id IS NULL AND g.status = 'completed' THEN 'draw'
-          WHEN (g.player1_id = ? AND g.winner_id != ?) OR (g.player2_id = ? AND g.winner_id != ?) THEN 'loss'
-          ELSE 'unknown'
-        END as result
-      FROM games g
-      LEFT JOIN users u1 ON g.player1_id = u1.id
-      LEFT JOIN users u2 ON g.player2_id = u2.id
-      LEFT JOIN users winner ON g.winner_id = winner.id
-      WHERE g.player1_id = ? OR g.player2_id = ?
-      ORDER BY g.ended_at DESC
-      LIMIT 50
-      `,
-      [user.id, user.id, user.id, user.id, user.id, user.id, user.id],
-      (err, rows) => {
-        if (err) {
-          console.error("Match history error:", err);
-          return res.status(500).json({ error: "Database error" });
-        }
-
-        res.json({ success: true, data: rows });
-      },
-    );
-  });
-});
-// ========== END MATCH HISTORY ==========
-
 io.on("connection", (socket) => {
   const authInfo = socket.user ? socket.user.username : "guest";
   console.log(`\nClient connected: ${socket.id} (${authInfo})`);
@@ -343,7 +298,7 @@ io.on("connection", (socket) => {
   let playerName = null;
 
   socket.on("create-room", ({ username }) => {
-    if (!username || typeof username !== "string" || username.length > 30) {
+    if (!username || typeof username !== 'string' || username.length > 30) {
       socket.emit("error", "Invalid username");
       return;
     }
@@ -367,7 +322,7 @@ io.on("connection", (socket) => {
       gameState: gameState,
       status: "waiting",
       createdAt: Date.now(),
-      moveTimer: null,
+      moveTimer: null,  // will hold the timeout for the current move
     });
 
     socket.join(code);
@@ -376,12 +331,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join-room", ({ roomCode, username }) => {
-    if (
-      !roomCode ||
-      typeof roomCode !== "string" ||
-      !username ||
-      typeof username !== "string"
-    ) {
+    if (!roomCode || typeof roomCode !== 'string' || !username || typeof username !== 'string') {
       socket.emit("error", "Invalid room code or username");
       return;
     }
@@ -438,16 +388,18 @@ io.on("connection", (socket) => {
         players: room.players.map((p) => p.username),
       });
 
+      // start the move timer for the first player
       startMoveTimer(roomCode);
     }
   });
 
   socket.on("game-move", ({ roomCode, move }) => {
-    if (!roomCode || typeof roomCode !== "string") {
+    // validate inputs before doing anything
+    if (!roomCode || typeof roomCode !== 'string') {
       socket.emit("error", "Invalid room code");
       return;
     }
-    if (!move || typeof move !== "object") {
+    if (!move || typeof move !== 'object') {
       socket.emit("error", "Invalid move data");
       return;
     }
@@ -475,6 +427,7 @@ io.on("connection", (socket) => {
     console.log(`  Current turn: ${room.gameState.currentPlayer}`);
     console.log(`  Capture pending: ${room.gameState.capturePending}`);
 
+    //Check turn first
     if (enginePlayer !== room.gameState.currentPlayer) {
       console.log(
         `  REJECTED: Not your turn! Expected ${room.gameState.currentPlayer}`,
@@ -483,12 +436,15 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // Convert move to engine format
     let engineMove = null;
     let result = null;
 
+    // If capture is pending, ONLY capture moves are allowed
     if (room.gameState.capturePending > 0) {
       console.log(`  Capture required! Looking for capture move...`);
 
+      // Check if this is a capture move
       const targetNode =
         move.capture !== undefined
           ? move.capture
@@ -513,14 +469,18 @@ io.on("connection", (socket) => {
         player: enginePlayer,
       };
       result = Engine.applyMove(room.gameState, engineMove);
-    } else if (move.x !== undefined && move.y !== undefined) {
+    }
+    // Placement move (only allowed when no capture pending)
+    else if (move.x !== undefined && move.y !== undefined) {
       const nodeId = getNodeIdFromCoordinates(move.x, move.y);
       if (nodeId !== -1) {
         console.log(`  Attempting placement at node ${nodeId}`);
         engineMove = { type: "placement", node: nodeId, player: enginePlayer };
         result = Engine.applyMove(room.gameState, engineMove);
       }
-    } else if (move.from !== undefined && move.to !== undefined) {
+    }
+    // Slide move (only allowed when no capture pending)
+    else if (move.from !== undefined && move.to !== undefined) {
       console.log(`  Attempting slide from ${move.from} to ${move.to}`);
       engineMove = {
         type: "slide",
@@ -540,9 +500,11 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // Update game state
     room.gameState = result;
     console.log(`  ACCEPTED: Move applied successfully`);
 
+    // Get full game controller state
     const controllerState = getGameControllerState(room.gameState);
 
     if (controllerState.mills.length > 0) {
@@ -562,21 +524,26 @@ io.on("connection", (socket) => {
       );
     }
 
+    // Broadcast to opponent (simple move for board update)
     socket.to(roomCode).emit("opponent-move", {
       move: move,
       player: player.playerNumber,
     });
 
+    // Confirm to sender
     socket.emit("move-confirmed", { success: true });
 
+    // Send full game controller state to BOTH players
     io.to(roomCode).emit("game-controller-state", controllerState);
 
+    // reset the move timer for the next player
     if (!room.gameState.winner) {
       startMoveTimer(roomCode);
     } else if (room.moveTimer) {
       clearTimeout(room.moveTimer);
     }
 
+    // Check winner
     if (room.gameState.winner) {
       const winnerPlayer = room.players.find(
         (p) =>
@@ -586,22 +553,19 @@ io.on("connection", (socket) => {
       const loserPlayer = room.players.find((p) => p !== winnerPlayer);
       console.log(`  GAME OVER - Winner: ${winnerPlayer?.username}`);
 
+      // save game to database
       const db = getDB();
       db.run(
         `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
          VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
-        [
-          roomCode,
-          room.players[0]?.username,
-          room.players[1]?.username,
-          winnerPlayer?.username,
-        ],
-        function (err) {
+        [roomCode, room.players[0]?.username, room.players[1]?.username, winnerPlayer?.username],
+        function(err) {
           if (err) console.log("Could not save game history:", err.message);
           else console.log("  Game saved to history (id: " + this.lastID + ")");
-        },
+        }
       );
 
+      // update elo ratings for logged-in players
       updateEloAfterGame(
         db,
         winnerPlayer?.username,
@@ -611,7 +575,7 @@ io.on("connection", (socket) => {
           io.to(roomCode).emit("game-over", {
             winner: winnerPlayer?.username,
             reason: room.gameState.winReason,
-            elo: eloResult,
+            elo: eloResult, // null if guests, otherwise has the rating changes
           });
         },
       );
@@ -659,6 +623,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // player resigns - end the game, award win to opponent
   socket.on("resign", ({ roomCode }) => {
     const room = rooms.get(roomCode);
     if (!room || room.status !== "playing") return;
@@ -670,36 +635,26 @@ io.on("connection", (socket) => {
     const winner = room.players.find((p) => p !== loser);
     console.log(`\n${loser.username} resigned in room ${roomCode}`);
 
+    // update elo
     const db = getDB();
     db.run(
       `INSERT INTO games (room_code, player1_id, player2_id, winner_id, status, ended_at)
        VALUES (?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?), 'completed', datetime('now'))`,
-      [
-        roomCode,
-        room.players[0]?.username,
-        room.players[1]?.username,
-        winner?.username,
-      ],
+      [roomCode, room.players[0]?.username, room.players[1]?.username, winner?.username]
     );
 
-    updateEloAfterGame(
-      db,
-      winner?.username,
-      loser?.username,
-      false,
-      function (eloResult) {
-        io.to(roomCode).emit("game-over", {
-          winner: winner?.username,
-          reason: "opponent_resigned",
-          elo: eloResult,
-        });
-      },
-    );
+    updateEloAfterGame(db, winner?.username, loser?.username, function(eloResult) {
+      io.to(roomCode).emit("game-over", {
+        winner: winner?.username,
+        reason: "opponent_resigned",
+        elo: eloResult
+      });
+    });
 
+    // mark room as done
     room.status = "finished";
-    setTimeout(() => {
-      rooms.delete(roomCode);
-    }, 5000);
+    // clean up room after a short delay
+    setTimeout(() => { rooms.delete(roomCode); }, 5000);
   });
 
   socket.on("disconnect", () => {
@@ -718,41 +673,33 @@ io.on("connection", (socket) => {
             message: `${player.username} disconnected. Waiting for reconnect...`,
           });
 
+          // if game is already finished, clean up immediately
           if (room.status === "finished") {
             const allGone = room.players.every((p) => !p.connected);
             if (allGone) rooms.delete(currentRoom);
           }
 
+          // if game was in progress and opponent disconnects for 30s, award win
           if (room.status === "playing") {
             setTimeout(() => {
               const r = rooms.get(currentRoom);
               if (r && !player.connected && r.status === "playing") {
                 const winner = r.players.find((p) => p.connected);
                 if (winner) {
-                  console.log(
-                    `${player.username} timed out, ${winner.username} wins by disconnect`,
-                  );
+                  console.log(`${player.username} timed out, ${winner.username} wins by disconnect`);
                   const db = getDB();
-                  updateEloAfterGame(
-                    db,
-                    winner.username,
-                    player.username,
-                    false,
-                    function (eloResult) {
-                      io.to(currentRoom).emit("game-over", {
-                        winner: winner.username,
-                        reason: "opponent_disconnected",
-                        elo: eloResult,
-                      });
-                    },
-                  );
+                  updateEloAfterGame(db, winner.username, player.username, function(eloResult) {
+                    io.to(currentRoom).emit("game-over", {
+                      winner: winner.username,
+                      reason: "opponent_disconnected",
+                      elo: eloResult
+                    });
+                  });
                   r.status = "finished";
-                  setTimeout(() => {
-                    rooms.delete(currentRoom);
-                  }, 5000);
+                  setTimeout(() => { rooms.delete(currentRoom); }, 5000);
                 }
               }
-            }, 30000);
+            }, 30000); // 30 second timeout
           }
         }
       }
