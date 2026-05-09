@@ -834,3 +834,158 @@ tr:nth-child(even) {
   font-size: 12px;
   color: #aaa;
 }
+
+/* ============================================
+   MOBILE RESPONSIVE (screens under 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 70px auto 1fr;
+    grid-template-areas:
+      "header"
+      "sidebar"
+      "main";
+  }
+
+  .header-section {
+    height: 70px;
+    padding: 0 10px;
+  }
+
+  .morabaraba-text {
+    font-size: 22px;
+    margin-right: 0;
+  }
+
+  .player-name {
+    font-size: 14px;
+  }
+
+  .player-icon {
+    height: 24px;
+    width: 24px;
+  }
+
+  .side-bar {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 10px;
+    gap: 10px;
+    border-right: none;
+    border-bottom: 2px solid black;
+  }
+
+  .side-bar h2 {
+    display: none;
+  }
+
+  .side-buttons {
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .side-buttons:hover {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .tut-boarder {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .tut-title {
+    margin-left: 0;
+    text-align: center;
+    font-size: 20px;
+  }
+
+  .sub-headings {
+    font-size: 16px;
+  }
+
+  .text {
+    font-size: 15px;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  .video video {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .modal-inner {
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+    min-height: 350px;
+    padding: 15px;
+  }
+
+  .modal-inner-leader-board {
+    width: 95%;
+    max-width: 95%;
+    height: 80vh;
+    padding: 10px;
+  }
+
+  .modal-headings {
+    font-size: 28px;
+  }
+
+  .modal-content-position {
+    gap: 20px;
+  }
+
+  .leader-board-header {
+    font-size: 1.1rem;
+    padding: 12px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+
+  .username-input,
+  .email-input,
+  .password-input {
+    width: 100%;
+    max-width: 220px;
+  }
+
+  .log-in-button,
+  .log-out-button {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .logout-confirm-content {
+    width: 90%;
+    max-width: 350px;
+    transform: none;
+  }
+
+  .match-history-inner {
+    width: 95%;
+  }
+
+  .code-display-text {
+    font-size: 20px;
+  }
+
+  .boarder {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+  }
+}
